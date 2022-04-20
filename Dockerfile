@@ -18,3 +18,10 @@ ENV KEVM_RELEASE_URL="https://github.com/runtimeverification/evm-semantics/relea
 RUN    curl -sSL ${KEVM_RELEASE_URL} --output /kevm.deb \
     && apt-get install --yes /kevm.deb                  \
     && rm -rf /kevm.deb
+
+RUN groupadd user && useradd -m -s /bin/sh -g user user
+USER user:user
+WORKDIR /home/user
+
+# Copy Benchmarks
+ADD --chown=user:user benchmarks /home/user/benchmarks

@@ -10,3 +10,10 @@ The scripts in `tools/` must:
 - Output a list of reachable `assert(...)` statements.
 - Output a list of unreachable `assert(...)` statements.
 - Output a list of unknown `assert(...)` statements.
+
+Example thing to do:
+
+```sh
+docker build . -t test-image
+docker run test-image ./tools/test-kevm.sh benchmarks/basic/assert-false.sol AssertFalse
+```

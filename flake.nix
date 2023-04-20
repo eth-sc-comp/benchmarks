@@ -36,11 +36,16 @@
       in rec {
         devShell = pkgs.mkShell {
           packages = [
+            # tools
             halmos
             hevm.packages.${system}.default
             kevm.packages.${system}.default
             echidna.packages.${system}.default
             foundry.defaultPackage.${system}
+
+            # python stuff
+            pkgs.black
+            pkgs.ruff
           ];
         };
       });

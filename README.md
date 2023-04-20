@@ -14,6 +14,6 @@ The scripts in `tools/` must:
 Example thing to do:
 
 ```sh
-docker build . -t test-image
-docker run test-image ./tools/test-kevm.sh benchmarks/basic/assert-false.sol AssertFalse
+nix develop
+./tools/test-kevm.sh benchmarks/basic/assert-false.sol AssertFalse
 ```

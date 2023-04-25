@@ -34,7 +34,7 @@ following format:
 
 ### Benchmarks
 
-Benchmarks are defined as solidity contracts containing calls to `assert`. The tools should take the
+Benchmarks are defined as Solidity contracts containing calls to `assert`. The tools should take the
 contract as an input, and declare the contract as either safe or unsafe.
 
 ```sol

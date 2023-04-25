@@ -1,7 +1,7 @@
 # Ethereum Smart Contract Benchmarks
 
 This repository contains a set of bechmarks that are intended to provide some kind of objective
-measurements for the strengths and weaknesses of various analysis tooling targeting ethereum smart
+measurements for the strengths and weaknesses of various analysis tooling targeting Ethereum smart
 contracts. In practice this means tools that consume Solidity, Yul, or EVM bytecode.
 
 The benchmarks in this repo should be useful to developers of all kinds of tools, including fuzzers,

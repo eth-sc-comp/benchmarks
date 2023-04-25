@@ -12,7 +12,7 @@ and counterexamples (to allow for the detection of false positives with an exter
 
 ## Using This Repository
 
-We use nix to provide a zero overhead reproducable environment that contains all tools required to
+We use Nix to provide a zero overhead reproducible environment that contains all tools required to
 run the benchmarks. if you want to add a new tool then you need to extend the `flake.nix` so that
 this tool is present in the `devShell`.
 

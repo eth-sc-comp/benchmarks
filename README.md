@@ -13,7 +13,7 @@ and counterexamples (to allow for the detection of false positives with an exter
 ## Using This Repository
 
 We use Nix to provide a zero overhead reproducible environment that contains all tools required to
-run the benchmarks. if you want to add a new tool then you need to extend the `flake.nix` so that
+run the benchmarks. If you want to add a new tool then you need to extend the `flake.nix` so that
 this tool is present in the `devShell`.
 
 To enter the envrionment, run `nix develop`, and then run `python bench.py` to execute the
@@ -53,9 +53,9 @@ This script should have the signature: `tools/SCRIPT_NAME <contract_file> <contr
 
 It should output a single `1` to stdout for unsafe contracts and a `0` for safe contracts.
 
-Before executing the benchmarks, `forge build` is invoked on all solidity files in the repo, and
-tools that operate on evm bytecode can read the compiled bytecode directly from the forge build
+Before executing the benchmarks, `forge build` is invoked on all Solidity files in the repository, and
+tools that operate on EVM bytecode can read the compiled bytecode directly from the forge build
 outputs.
 
 In the future we aim to extend the returned information with a common format for counterexamples
-that can be validated against some reference evm implementation (e.g. geth).
+that can be validated against some reference EVM implementation (e.g. geth).

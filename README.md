@@ -48,6 +48,9 @@ contract C {
 }
 ```
 
+There is a global 5 minute timeout applied to all tool invocations, and tools that take longer than
+this to produce a result will have an "unknown" result assigned for that benchmark.
+
 ### Harnesses
 
 In order to include a tool in this repository, you should add a script for that tool under `tools/<tool_name>.sh`.

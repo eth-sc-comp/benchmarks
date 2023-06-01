@@ -24,7 +24,10 @@ following format:
 {
   "tool_name": {
     "solidity_file": {
-      "contract_name": <time_taken>
+      "contract_name": {
+        "result": <safe/unsafe/unknown>,
+        "time_taken": <time taken (ms)>
+      }
     }
   }
 }
@@ -51,7 +54,11 @@ In order to include a tool in this repository, you should add a script for that 
 
 This script should have the signature: `tools/SCRIPT_NAME <contract_file> <contract_name>`.
 
-It should output a single `1` to stdout for unsafe contracts and a `0` for safe contracts.
+It should output:
+
+- "safe": if the contract contains no reachable assertion violations
+- "unsafe": if the contract contains at least one reachable assertion violation
+- "unknown": if the tool was unable to determine whether a reachable assertion violation is present
 
 Before executing the benchmarks, `forge build` is invoked on all Solidity files in the repository, and
 tools that operate on EVM bytecode can read the compiled bytecode directly from the forge build

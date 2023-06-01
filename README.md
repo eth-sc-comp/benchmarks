@@ -25,6 +25,7 @@ following format:
   "tool_name": {
     "solidity_file": {
       "contract_name": {
+        "expected": <safe/unsafe>,
         "result": <safe/unsafe/unknown>,
         "time_taken": <time taken (ms)>
       }
@@ -37,16 +38,28 @@ following format:
 
 ### Benchmarks
 
-Benchmarks are defined as Solidity contracts containing calls to `assert`. The tools should take the
-contract as an input, and declare the contract as either safe or unsafe.
+Benchmarks are defined as Solidity contracts containing calls to `assert`. Contracts declare whether
+or not their assertions should be reachable by declaring one of the two follwing methods:
+
+- `function UNSAFE() public pure {}`: contract contains a reachable assertion
+- `function SAFE() public pure {}`: contract contains no reachable assertions
+
+Utility contracts that declare these methods are availabe in `src/utils.sol`, and should be used in
+all benchmarks.
+
+An example benchmark:
 
 ```sol
-contract C {
+import "src/utils.sol";
+
+contract C is Unsafe {
     function f() public {
       assert(false);
     }
 }
 ```
+
+The tools should take the contract as an input, and declare the contract as either safe or unsafe.
 
 There is a global 5 minute timeout applied to all tool invocations, and tools that take longer than
 this to produce a result will have an "unknown" result assigned for that benchmark.

@@ -2,7 +2,9 @@
 
 pragma solidity >=0.8.9;
 
-contract AssertFalse {
+import "src/utils.sol";
+
+contract AssertFalse is Unsafe {
     function assert_false() public pure {
         assert(false);
     }

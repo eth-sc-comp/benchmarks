@@ -19,6 +19,9 @@ subprocess.run(["forge", "build", "--use", SOLC_VERSION], capture_output=True)
 cases = {
     str(f): [j.stem for j in f.glob("*.json")] for f in Path("./out").iterdir() if f.is_dir()
 }
+# strip utils.sol (contains no tests)
+cases.pop("out/utils.sol", None)
+
 
 # tools names -> harness scripts
 tools = {"hevm": "tools/hevm.sh"}
@@ -32,14 +35,24 @@ for t, script in tools.items():
         results[t][file] = {}
         for c in contracts:
             print(f"  {file}:{c}:")
+            # determine whether or not the contract is expected to be safe or unsafe
+            expected = ""
+            with open(f"{file}/{c}.json") as oj:
+                methods = json.load(oj)["methodIdentifiers"]
+                if "UNSAFE()" in methods:
+                    expected = "unsafe"
+                if "SAFE()" in methods:
+                    assert(expected != "unsafe")
+                    expected = "safe"
+                assert(expected == "safe" or expected == "unsafe")
             before = time.time_ns()
             try:
                 res = subprocess.run([script, file, c], capture_output=True, encoding="utf-8", timeout=TIMEOUT)
             except timeout.TimeoutExpired:
-                results[t][file][c] = { "result": "unknown", "time_taken": TIMEOUT*1000}
+                results[t][file][c] = { "result": "unknown", "expected": expected, "time_taken": TIMEOUT*1000}
             else:
                 after = time.time_ns()
-                results[t][file][c] = { "result": res.stdout.rstrip(), "time_taken": (after - before) // 1000000 }
+                results[t][file][c] = { "result": res.stdout.rstrip(), "expected": expected, "time_taken": (after - before) // 1000000 }
             print(f"    {results[t][file][c]['result']} ({results[t][file][c]['time_taken']} ms)")
 
 # write the results to disk as json

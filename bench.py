@@ -4,7 +4,7 @@ import subprocess
 import os
 import glob
 from pathlib import Path
-import timeit
+import time
 import copy
 import json
 
@@ -29,9 +29,10 @@ for t, script in tools.items():
     for file, contracts in results[t].items():
         results[t][file] = {}
         for c in contracts:
-            results[t][file][c] = timeit.timeit(
-                lambda: subprocess.run([script, file, c]), number=1
-            )
+            before = time.time_ns()
+            res = subprocess.run([script, file, c], capture_output=True, encoding="utf-8")
+            after = time.time_ns()
+            results[t][file][c] = { "result": res.stdout.rstrip(), "time_taken": (after - before) // 1000000 }
 
 # write the results to disk as json
 with open('results.json', 'w') as res:

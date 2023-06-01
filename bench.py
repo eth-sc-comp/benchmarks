@@ -30,7 +30,7 @@ for t, script in tools.items():
         results[t][file] = {}
         for c in contracts:
             before = time.time_ns()
-            res = subprocess.run([script, file, c], capture_output=True, encoding="utf-8")
+            res = subprocess.run([script, file, c], capture_output=True, encoding="utf-8", timeout=5*60)
             after = time.time_ns()
             results[t][file][c] = { "result": res.stdout.rstrip(), "time_taken": (after - before) // 1000000 }
 

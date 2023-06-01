@@ -1,2 +1,5 @@
 .direnv/
 **/.k-artifacts/
+cache/
+out/
+results.json

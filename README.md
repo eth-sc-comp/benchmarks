@@ -1,19 +1,61 @@
-**UNDER CONSTRUCTION**
+# Ethereum Smart Contract Benchmarks
 
-- `benchmarks/`: Tests to benchmarks tools against.
-  - `basic/`: Hand-written simple tests.
-- `tools/`: Scripts to run tools.
+This repository contains a set of bechmarks that are intended to provide some kind of objective
+measurements for the strengths and weaknesses of various analysis tooling targeting Ethereum smart
+contracts. In practice this means tools that consume Solidity, Yul, or EVM bytecode.
 
-The scripts in `tools/` must:
+The benchmarks in this repo should be useful to developers of all kinds of tools, including fuzzers,
+static analyzers, and symbolic execution engines.
 
-- Have the signature `tools/SCRIPT_NAME <contract_file> <contract_name>`.
-- Output a list of reachable `assert(...)` statements.
-- Output a list of unreachable `assert(...)` statements.
-- Output a list of unknown `assert(...)` statements.
+In order to make interoperabilty as easy as possible we define standard formats for both benchmarks
+and counterexamples (to allow for the detection of false positives with an external reference tool).
 
-Example thing to do:
+## Using This Repository
 
-```sh
-nix develop
-./tools/test-kevm.sh benchmarks/basic/assert-false.sol AssertFalse
+We use Nix to provide a zero overhead reproducible environment that contains all tools required to
+run the benchmarks. If you want to add a new tool then you need to extend the `flake.nix` so that
+this tool is present in the `devShell`.
+
+To enter the envrionment, run `nix develop`, and then run `python bench.py` to execute the
+benchmarks. This will write the results of the benchmarks to a `results.json` file with the
+following format:
+
+```json
+{
+  "tool_name": {
+    "solidity_file": {
+      "contract_name": <time_taken>
+    }
+  }
+}
 ```
+
+## Formats
+
+### Benchmarks
+
+Benchmarks are defined as Solidity contracts containing calls to `assert`. The tools should take the
+contract as an input, and declare the contract as either safe or unsafe.
+
+```sol
+contract C {
+    function f() public {
+      assert(false);
+    }
+}
+```
+
+### Harnesses
+
+In order to include a tool in this repository, you should add a script for that tool under `tools/<tool_name>.sh`.
+
+This script should have the signature: `tools/SCRIPT_NAME <contract_file> <contract_name>`.
+
+It should output a single `1` to stdout for unsafe contracts and a `0` for safe contracts.
+
+Before executing the benchmarks, `forge build` is invoked on all Solidity files in the repository, and
+tools that operate on EVM bytecode can read the compiled bytecode directly from the forge build
+outputs.
+
+In the future we aim to extend the returned information with a common format for counterexamples
+that can be validated against some reference EVM implementation (e.g. geth).

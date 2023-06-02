@@ -46,6 +46,11 @@
             # python stuff
             pkgs.black
             pkgs.ruff
+            pkgs.python3
+            pkgs.python3Packages.python-lsp-server
+
+            # shell script deps
+            pkgs.jq
           ];
         };
       });

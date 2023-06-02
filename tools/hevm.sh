@@ -3,10 +3,11 @@
 contract_file="$1" ; shift
 contract_name="$1" ; shift
 
-json_file="out/$(basename "${contract_file}")/${contract_name}.json"
-bytecode=$(jq .deployedBytecode.object -r "${json_file}")
+SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
+source "$SCRIPT_DIR/utils.sh"
 
-out=$(hevm symbolic --code "${bytecode}")
+code=$(get_runtime_bytecode "${contract_file}" "${contract_name}")
+out=$(hevm symbolic --code "$code")
 
 if [[ $out =~ "QED: No reachable property violations discovered" ]]; then
   echo "safe"

@@ -38,28 +38,19 @@ following format:
 
 ### Benchmarks
 
-Benchmarks are defined as Solidity contracts containing calls to `assert`. Contracts declare whether
-or not their assertions should be reachable by declaring one of the two follwing methods:
-
-- `function UNSAFE() public pure {}`: contract contains a reachable assertion
-- `function SAFE() public pure {}`: contract contains no reachable assertions
-
-Utility contracts that declare these methods are availabe in `src/utils.sol`, and should be used in
-all benchmarks.
+Benchmarks are defined as Solidity contracts containing calls to `assert`. Contracts that do not
+contain reachable assertion violations are contained within the `src/safe` directory, and those that
+do are contained within `src/unsafe`.
 
 An example benchmark:
 
 ```sol
-import "src/utils.sol";
-
-contract C is Unsafe {
+contract C {
     function f() public {
       assert(false);
     }
 }
 ```
-
-The tools should take the contract as an input, and declare the contract as either safe or unsafe.
 
 There is a global 5 minute timeout applied to all tool invocations, and tools that take longer than
 this to produce a result will have an "unknown" result assigned for that benchmark.
@@ -68,7 +59,7 @@ this to produce a result will have an "unknown" result assigned for that benchma
 
 In order to include a tool in this repository, you should add a script for that tool under `tools/<tool_name>.sh`.
 
-This script should have the signature: `tools/SCRIPT_NAME <contract_file> <contract_name>`.
+This script should have the signature: `tools/SCRIPT_NAME <solidity_file> <contract_name>`.
 
 It should output:
 
@@ -79,6 +70,9 @@ It should output:
 Before executing the benchmarks, `forge build` is invoked on all Solidity files in the repository, and
 tools that operate on EVM bytecode can read the compiled bytecode directly from the forge build
 outputs.
+
+A helper function (`get_runtime_bytecode`) is available in `tools/utils.sh` that will return the
+runtime bytecode when called with the solidity file path and contract name.
 
 In the future we aim to extend the returned information with a common format for counterexamples
 that can be validated against some reference EVM implementation (e.g. geth).

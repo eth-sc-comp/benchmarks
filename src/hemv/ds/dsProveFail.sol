@@ -1,7 +1,7 @@
 
 import "ds-test/test.sol";
-import "ds-token/token.sol";
-import "ds-math/math.sol";
+import "./token.sol";
+import "./math.sol";
 
 contract Withdraw {
     receive() external payable {}

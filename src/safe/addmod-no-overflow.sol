@@ -3,7 +3,7 @@
 pragma solidity ^0.8.17;
 
 contract MyContract {
-  function fun(uint8 a, uint8 b, uint8 c) external pure {
+  function prove_addmod_no_overflow(uint8 a, uint8 b, uint8 c) external pure {
     require(a < 4);
     require(b < 4);
     require(c < 4);

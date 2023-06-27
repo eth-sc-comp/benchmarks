@@ -1,6 +1,8 @@
+pragma solidity ^0.8.19;
+
 import "ds-test/test.sol";
-import "./token.sol";
-import "./math.sol";
+import "../src/token.sol";
+import "../src/math.sol";
 
 contract Withdraw {
     receive() external payable {}
@@ -11,7 +13,6 @@ contract Withdraw {
     }
 }
 
-
 contract SolidityTest is DSTest, DSMath {
     DSToken token;
     Withdraw withdraw;
@@ -19,19 +20,6 @@ contract SolidityTest is DSTest, DSMath {
     function setUp() public {
         token = new DSToken("TKN");
         withdraw = new Withdraw();
-    }
-
-    function prove_add(uint x, uint y) public {
-        assertTrue(x + y >= x);
-    }
-
-
-    function prove_mul(uint136 x, uint128 y) public {
-        mul(x,y);
-    }
-
-    function prove_distributivity(uint120 x, uint120 y, uint120 z) public {
-        assertEq(add(x, mul(y, z)), mul(add(x, y), add(x, z)));
     }
 
     function prove_transfer(uint supply, address usr, uint amt) public {
@@ -44,7 +32,7 @@ contract SolidityTest is DSTest, DSMath {
         uint expected = usr == address(this)
                         ? 0    // self transfer is a noop
                         : amt; // otherwise `amt` has been transfered to `usr`
-        assertEq(expected, postbal - prebal);
+        assert(expected == postbal - prebal);
     }
 
     function proveFail_withdraw(uint guess) public {
@@ -52,7 +40,7 @@ contract SolidityTest is DSTest, DSMath {
         uint preBalance = address(this).balance;
         withdraw.withdraw(guess);
         uint postBalance = address(this).balance;
-        assertEq(preBalance + 1 ether, postBalance);
+        assert(preBalance + 1 ether == postBalance);
     }
 
     // allow sending eth to the test contract

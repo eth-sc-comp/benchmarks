@@ -1,3 +1,5 @@
+pragma solidity ^0.8.19;
+
 // modified from solmate erc20
 // https://github.com/transmissions11/solmate/blob/c2594bf4635ad773a8f4763e20b7e79582e41535/src/tokens/ERC20.sol
 

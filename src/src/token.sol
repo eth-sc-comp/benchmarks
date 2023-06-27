@@ -31,7 +31,7 @@ contract DSToken is DSMath, DSAuth {
     string                                            public  name = "";     // Optional token name
 
 
-    constructor(string memory symbol_) public {
+    constructor(string memory symbol_) {
         symbol = symbol_;
     }
 
@@ -48,7 +48,7 @@ contract DSToken is DSMath, DSAuth {
     }
 
     function approve(address guy) external returns (bool) {
-        return approve(guy, uint(-1));
+        return approve(guy, uint(0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff));
     }
 
     function approve(address guy, uint wad) public stoppable returns (bool) {
@@ -68,7 +68,7 @@ contract DSToken is DSMath, DSAuth {
         stoppable
         returns (bool)
     {
-        if (src != msg.sender && allowance[src][msg.sender] != uint(-1)) {
+        if (src != msg.sender && allowance[src][msg.sender] != uint(0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff)) {
             require(allowance[src][msg.sender] >= wad, "ds-token-insufficient-approval");
             allowance[src][msg.sender] = sub(allowance[src][msg.sender], wad);
         }
@@ -110,7 +110,7 @@ contract DSToken is DSMath, DSAuth {
     }
 
     function burn(address guy, uint wad) public auth stoppable {
-        if (guy != msg.sender && allowance[guy][msg.sender] != uint(-1)) {
+        if (guy != msg.sender && allowance[guy][msg.sender] != uint(0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff)) {
             require(allowance[guy][msg.sender] >= wad, "ds-token-insufficient-approval");
             allowance[guy][msg.sender] = sub(allowance[guy][msg.sender], wad);
         }

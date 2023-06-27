@@ -1,9 +1,6 @@
 #!/usr/bin/env python3
 
 import subprocess
-import sys
-import os
-import glob
 from pathlib import Path
 import time
 import copy
@@ -11,9 +8,9 @@ import json
 from typing import Dict, Tuple, Any, Literal
 
 SOLC_VERSION = "0.8.19"
+TIMEOUT = 5 * 60  # 5 minutes
 tools = {"hevm": "tools/hevm.sh"}
 
-TIMEOUT = 5 * 60 # 5 minutes
 
 def printable_output(out):
     return ("%s" % out).replace('\\n', '\n').replace('\\t', '\t')

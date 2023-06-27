@@ -46,6 +46,10 @@
             # python stuff
             pkgs.black
             pkgs.ruff
+            pkgs.python3
+
+            # shell script deps
+            pkgs.jq
           ];
         };
       });

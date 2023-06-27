@@ -1,0 +1,22 @@
+[profile.default]
+src = 'src'
+out = 'out'
+libs = ['lib']
+
+[fuzz]
+runs = 100
+max_test_rejects = 100
+seed = '0x3e8'
+dictionary_weight = 40
+include_storage = true
+include_push_bytes = true
+
+[symbolic]
+symbolic_storage = false
+concrete_validation = true
+solver_timeout = 120_000
+solver = 2
+loop_bound = 256
+call_bound = 1
+
+# See more config options https://github.com/foundry-rs/foundry/tree/master/config

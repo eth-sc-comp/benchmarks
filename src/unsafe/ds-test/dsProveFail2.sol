@@ -1,7 +1,7 @@
 pragma solidity ^0.8.19;
 
 import "ds-test/test.sol";
-import "../src/erc20.sol";
+import "lib/erc20.sol";
 
 contract SolidityTest is DSTest {
     ERC20 token;

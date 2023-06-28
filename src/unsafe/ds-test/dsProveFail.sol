@@ -1,8 +1,8 @@
 pragma solidity ^0.8.19;
 
 import "ds-test/test.sol";
-import "../src/token.sol";
-import "../src/math.sol";
+import "lib/token.sol";
+import "lib/math.sol";
 
 contract Withdraw {
     receive() external payable {}

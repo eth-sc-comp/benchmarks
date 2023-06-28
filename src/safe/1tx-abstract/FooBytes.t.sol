@@ -2,7 +2,7 @@
 pragma solidity ^0.8.17;
 
 import {Test} from "forge-std/Test.sol";
-import {FooBytes} from "../src/FooBytes.sol";
+import {FooBytes} from "lib/FooBytes.sol";
 
 contract FooBytesTest is Test {
     FooBytes internal a;

@@ -6,11 +6,15 @@ import time
 import copy
 import json
 from typing import Dict, Tuple, Any, Literal
+import optparse
 
 SOLC_VERSION = "0.8.19"
-TIMEOUT = 5 * 60  # 5 minutes
 tools = {"hevm": "tools/hevm.sh"}
+global opts
 
+def verb_print(*arg):
+    if opts.verbose:
+        print(*arg)
 
 def printable_output(out):
     return ("%s" % out).replace('\\n', '\n').replace('\\t', '\t')
@@ -66,21 +70,27 @@ def determine_expected(sol_file: str) -> Literal["safe"] | Literal["unsafe"]:
 def execute_contract(tool: str, sol_file: str, contract: str) -> Tuple[int, str]:
     time_taken = None
     result = None
+    res = None
     before: int = time.time_ns()
+    toexec = [tool, sol_file, contract]
+    print("To re-run, execute: %s" % (" ".join(toexec)))
     try:
         res = subprocess.run(
-            [tool, sol_file, contract],
+            toexec,
             capture_output=True,
             encoding="utf-8",
-            timeout=TIMEOUT,
+            timeout=opts.timeout,
         )
     except subprocess.TimeoutExpired:
         result = "unknown"
-        time_taken = TIMEOUT * 1000
+        time_taken = opts.timeout*2
     else:
         after: int = time.time_ns()
+        lines = res.stderr.split("\\n")
         result = res.stdout.rstrip()
         time_taken = (after - before) // 1_000_000
+        verb_print("Lines is: ", "\n".join(lines))
+        verb_print("Result is: '%s'" % result)
 
     assert result == "safe" or result == "unsafe" or result == "unknown"
     return (time_taken, result)
@@ -116,7 +126,31 @@ def run_all_tests(
 # --- main ---
 
 
+def set_up_parser():
+    usage = "usage: %prog [options]"
+    desc = """Run all benchmarks for all tools
+    """
+
+    parser = optparse.OptionParser(usage=usage, description=desc)
+    parser.add_option("--verb", "-v", action="store_true", default=False,
+                      dest="verbose", help="More verbose output. Default: %default")
+
+    parser.add_option("-s", dest="seed", type=int, default=1,
+                      help="Seed for random numbers for reproducibility. Default: %default")
+
+    parser.add_option("-t", dest="timeout", type=int, default=25,
+                      help="Max time to run. Default: %default")
+
+    return parser
+
 def main() -> None:
+    parser = set_up_parser()
+    global opts
+    (opts, args) = parser.parse_args()
+    if len(args) > 0:
+        print("Benchmarking does not accept arguments")
+        exit(-1)
+
     build_contracts()
     cases = gather_cases()
     results = run_all_tests(cases)

@@ -29,29 +29,26 @@ def build_contracts() -> None:
 
     ret.check_returncode()
 
-# builds a mapping from solidity files to lists of contracts. we do this by
-# parsing the foundry build output, since that's easier than parsing the actual
-# solidity code to handle the case where a single solidity file contains
-# multiple contracts
-def gather_cases() -> Dict[str, list[str]]:
-    # build a dictionary where the key is a directory in the foundry build
-    # output, and the value is a list of contract names defined within
-    output_jsons = {
-        str(f): [j.stem for j in f.glob("*.json")]
-        for f in Path("./out").iterdir()
-        if f.is_dir()
-    }
 
-    # replace the path to the output json with the path to the original solidity file
-    cases: Dict[str, list[str]] = {}
-    for out_dir, contracts in output_jsons.items():
-        for c in contracts:
-            with open(f"{out_dir}/{c}.json") as oj:
-                sol_file: str = json.load(oj)["ast"]["absolutePath"]
-                cases.setdefault(sol_file, [])
-                cases[sol_file].append(c)
-    return cases
+def get_prove_funcs(js) -> list[str]:
+    ret = []
+    for i in range(len(js["abi"])):
+        if "name" not in js["abi"][i]: continue
+        fun = js["abi"][i]["name"]
+        if "prove" in fun: ret.append(fun)
 
+    return ret
+
+# determines whether dstest or not
+def determine_dstest(sol_file: str) -> bool:
+    if sol_file.startswith("src/safe/ds-test") or sol_file.startswith("src/unsafe/ds-test"):
+        return True
+    elif sol_file.startswith("src/safe/1tx-abstract") or sol_file.startswith("src/unsafe/1tx-abstract"):
+        return False
+    else:
+        raise ValueError(
+            "solidity file is neither in 'ds-test' nor in '1tx-abstract' directory: " + sol_file
+        )
 
 # determines whether or not a given test case is expected to be safe or unsafe
 def determine_expected(sol_file: str) -> Literal["safe"] | Literal["unsafe"]:
@@ -65,14 +62,63 @@ def determine_expected(sol_file: str) -> Literal["safe"] | Literal["unsafe"]:
         )
 
 
+class Case:
+    def __init__(self, contract: str, json_fname: str, sol_file: str, ds: bool, fun: str):
+        self.contract = contract
+        self.json_fname = json_fname
+        self.sol_file = sol_file
+        self.ds = ds
+        self.fun = fun
+        self.expected = determine_expected(sol_file)
+    def __str__(self):
+        out = ""
+        out+="Contract: %s, " % self.contract
+        out+="Function: %s, " % self.fun
+        out+="JSON filename: %s, " % self.json_fname
+        out+="Is DS?: %s, " % self.ds
+        out+="Expected result: %s" % self.expected
+        return out
+
+
+# builds a mapping from solidity files to lists of contracts. we do this by
+# parsing the foundry build output, since that's easier than parsing the actual
+# solidity code to handle the case where a single solidity file contains
+# multiple contracts
+def gather_cases() -> list[Case]:
+    # build a dictionary where the key is a directory in the foundry build
+    # output, and the value is a list of contract names defined within
+    output_jsons = {
+        str(f): [j.stem for j in f.glob("*.json")]
+        for f in Path("./out").iterdir()
+        if f.is_dir()
+    }
+
+    # replace the path to the output json with the path to the original solidity file
+    cases: list[Case] = []
+    for out_dir, contracts in output_jsons.items():
+        for c in contracts:
+            json_fname = f"{out_dir}/{c}.json"
+            with open(json_fname) as oj:
+                js = json.load(oj)
+                sol_file: str = js["ast"]["absolutePath"]
+                if sol_file.startswith("lib/"): continue
+                ds_test = determine_dstest(sol_file)
+                if ds_test:
+                    for f in get_prove_funcs(js):
+                        cases.append(Case(c, json_fname, sol_file, True, f))
+                else:
+                    cases.append(Case(c, json_fname, sol_file, False, ""))
+    return cases
+
+
 # executes the given tool script against the given test case and returns the
 # time taken and the reported result
-def execute_contract(tool: str, sol_file: str, contract: str) -> Tuple[int, str]:
+def execute_contract(tool: str, case: Case) -> Tuple[int, str]:
     time_taken = None
     result = None
     res = None
     before: int = time.time_ns()
-    toexec = [tool, sol_file, contract]
+    toexec = [tool, case.sol_file, case.contract, case.fun, "%i" % case.ds]
     print("To re-run, execute: %s" % (" ".join(toexec)))
     try:
         res = subprocess.run(
@@ -95,31 +141,24 @@ def execute_contract(tool: str, sol_file: str, contract: str) -> Tuple[int, str]
     assert result == "safe" or result == "unsafe" or result == "unknown"
     return (time_taken, result)
 
+class Result :
+    def __init__(self, result: str, t: float, case: Case) :
+        self.result = result
+        self.t = t
+        self.case = case
 
 # executes all tests contained in the argument cases mapping with all tools and
 # builds the result dict
-def run_all_tests(
-    cases: Dict[str, list[str]]
-) -> Dict[str, Dict[str, Dict[str, str | int]]]:
+def run_all_tests(cases: list[Case]) -> dict[str, list[Result]]:
     # execute each tool on each testcase and write the execution times to a
     # dictionary (tool -> file -> contract -> (expected, result, time_taken))
-    results: Dict[str, Any] = copy.deepcopy(tools)
-    for t, script in tools.items():
-        print(f"{t}:")
-        results[t] = copy.deepcopy(cases)
-        for file, contracts in results[t].items():
-            results[t][file] = {}
-            for c in contracts:
-                print(f"  {file}:{c}:")
-                expected = determine_expected(file)
-                (time, result) = execute_contract(script, file, c)
-                results[t][file][c] = {
-                    "result": result,
-                    "expected": expected,
-                    "time_taken": time,
-                }
-
-                print(f"    {result} ({time} ms)")
+    results: dict[str, list[Result]] = {}
+    for tool, script in tools.items():
+        res = []
+        for c in cases:
+            (time, result) = execute_contract(script, c)
+            res.append(Result(result, time, c))
+        results[tool] = res
     return results
 
 
@@ -153,6 +192,8 @@ def main() -> None:
 
     build_contracts()
     cases = gather_cases()
+    print("cases gathered: ")
+    for c in cases: print("-> %s" % c)
     results = run_all_tests(cases)
     with open("results.json", "w") as res:
         res.write(json.dumps(results, indent=2))

@@ -3,8 +3,11 @@
 import subprocess
 from pathlib import Path
 import time
-import copy
+import os
+import stat
 import json
+import re
+import random
 from typing import Dict, Tuple, Any, Literal
 import optparse
 
@@ -70,10 +73,18 @@ class Case:
         self.ds = ds
         self.fun = fun
         self.expected = determine_expected(sol_file)
+
+    def get_name(self) -> str:
+        if self.ds:
+            return "%s:%s:%s" % (self.sol_file, self.contract, self.fun)
+        else:
+            return "%s:%s" % (self.sol_file, self.contract)
+
     def __str__(self):
         out = ""
         out+="Contract: %s, " % self.contract
-        out+="Function: %s, " % self.fun
+        if self.ds:
+            out+="Function: %s, " % self.fun
         out+="JSON filename: %s, " % self.json_fname
         out+="Is DS?: %s, " % self.ds
         out+="Expected result: %s" % self.expected
@@ -111,41 +122,71 @@ def gather_cases() -> list[Case]:
     return cases
 
 
+def unique_file(fname_begin, fname_end=".out"):
+        counter = 1
+        while 1:
+            fname = "out/" + fname_begin + '_' + str(counter) + fname_end
+            try:
+                fd = os.open(
+                    fname, os.O_CREAT | os.O_EXCL, stat.S_IREAD | stat.S_IWRITE)
+                os.fdopen(fd).close()
+                return fname
+            except OSError:
+                pass
+
+            counter += 1
+            if counter > 300:
+                print("Cannot create unique_file, last try was: %s" % fname)
+                exit(-1)
+
+        print("ERROR: Cannot create unique temporary file")
+        exit(-1)
+
+def last_line_in_file(fname: str) -> str:
+    with open(fname, 'r') as f:
+        lines = f.read().splitlines()
+        last_line = lines[-1]
+        return last_line
+
+
 # executes the given tool script against the given test case and returns the
 # time taken and the reported result
-def execute_contract(tool: str, case: Case) -> Tuple[int, str]:
+def execute_case(tool: str, case: Case) -> Tuple[int|None, str]:
     time_taken = None
     result = None
     res = None
     before: int = time.time_ns()
-    toexec = [tool, case.sol_file, case.contract, case.fun, "%i" % case.ds]
-    print("To re-run, execute: %s" % (" ".join(toexec)))
-    try:
-        res = subprocess.run(
-            toexec,
-            capture_output=True,
-            encoding="utf-8",
-            timeout=opts.timeout,
-        )
-    except subprocess.TimeoutExpired:
-        result = "unknown"
-        time_taken = opts.timeout*2
-    else:
-        after: int = time.time_ns()
-        lines = res.stderr.split("\\n")
+    tmp_f = unique_file("output")
+    toexec = ["./runlim/runlim", "--real-time-limit=%s" % opts.timeout, "--output-file=%s" % tmp_f,
+              tool, case.sol_file, case.contract, case.fun, "%i" % case.ds]
+    print("Running: %s" % (" ".join(toexec)))
+    res = subprocess.run( toexec, capture_output=True, encoding="utf-8")
+    after: int = time.time_ns()
+    out_of_time = False
+    with open(tmp_f, 'r') as f:
+        for l in f:
+            # if opts.verbose: print("runlim output line: ", l.strip())
+            if re.match("^.runlim. status:.*out of time", l): out_of_time = True
+    if not out_of_time:
+        if opts.verbose: print("Res stdout is:", res.stdout)
+        if opts.verbose: print("Res stderr is:", res.stderr)
         result = res.stdout.rstrip()
         time_taken = (after - before) // 1_000_000
-        verb_print("Lines is: ", "\n".join(lines))
-        verb_print("Result is: '%s'" % result)
+    else:
+        result = "unknown"
 
     assert result == "safe" or result == "unsafe" or result == "unknown"
+    os.unlink(tmp_f)
+    if opts.verbose: print("Result is: ", result)
     return (time_taken, result)
 
+
 class Result :
-    def __init__(self, result: str, t: float, case: Case) :
+    def __init__(self, result: str, t: float|None, case: Case) :
         self.result = result
         self.t = t
         self.case = case
+
 
 # executes all tests contained in the argument cases mapping with all tools and
 # builds the result dict
@@ -156,10 +197,20 @@ def run_all_tests(cases: list[Case]) -> dict[str, list[Result]]:
     for tool, script in tools.items():
         res = []
         for c in cases:
-            (time, result) = execute_contract(script, c)
+            (time, result) = execute_case(script, c)
             res.append(Result(result, time, c))
         results[tool] = res
     return results
+
+
+class MyEncoder(json.JSONEncoder):
+    def default(self, obj):
+        if isinstance(obj, Result):
+            solved = obj.result == "safe" or obj.result == "unsafe"
+            if solved: correct = obj.result == obj.case.expected
+            else: correct = None
+            return {"name": obj.case.get_name(), "ds": obj.case.ds, "solved": solved, "correct":correct, "t": obj.t}
+        return json.JSONEncoder.default(self, obj)
 
 
 # --- main ---
@@ -180,7 +231,11 @@ def set_up_parser():
     parser.add_option("-t", dest="timeout", type=int, default=25,
                       help="Max time to run. Default: %default")
 
+    parser.add_option("--limit", dest="limit", type=int, default=100000,
+                      help="Max number of cases to run. Default: %default")
+
     return parser
+
 
 def main() -> None:
     parser = set_up_parser()
@@ -190,13 +245,15 @@ def main() -> None:
         print("Benchmarking does not accept arguments")
         exit(-1)
 
+    random.seed(opts.seed)
     build_contracts()
     cases = gather_cases()
     print("cases gathered: ")
     for c in cases: print("-> %s" % c)
-    results = run_all_tests(cases)
+    random.shuffle(cases)
+    results = run_all_tests(cases[:opts.limit])
     with open("results.json", "w") as res:
-        res.write(json.dumps(results, indent=2))
+        res.write(json.dumps(results, indent=2, cls=MyEncoder))
 
 
 if __name__ == "__main__":

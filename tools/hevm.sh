@@ -25,6 +25,11 @@ if [[ $out =~ "[FAIL]" ]]; then
   exit 0
 fi
 
+if [[ $out =~ "[PASS]" ]]; then
+  echo "safe"
+  exit 0
+fi
+
 if [[ $out =~ "QED: No reachable property violations discovered" ]]; then
   echo "safe"
   exit 0

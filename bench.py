@@ -203,7 +203,7 @@ def run_all_tests(cases: list[Case]) -> dict[str, list[Result]]:
     return results
 
 
-class MyEncoder(json.JSONEncoder):
+class ResultEncoder(json.JSONEncoder):
     def default(self, obj):
         if isinstance(obj, Result):
             solved = obj.result == "safe" or obj.result == "unsafe"
@@ -253,7 +253,7 @@ def main() -> None:
     random.shuffle(cases)
     results = run_all_tests(cases[:opts.limit])
     with open("results.json", "w") as res:
-        res.write(json.dumps(results, indent=2, cls=MyEncoder))
+        res.write(json.dumps(results, indent=2, cls=ResultEncoder))
 
 
 if __name__ == "__main__":

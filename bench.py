@@ -19,8 +19,10 @@ def verb_print(*arg):
     if opts.verbose:
         print(*arg)
 
+
 def printable_output(out):
     return ("%s" % out).replace('\\n', '\n').replace('\\t', '\t')
+
 
 def build_contracts() -> None:
     ret = subprocess.run(["forge", "build", "--use", SOLC_VERSION], capture_output=True)
@@ -151,12 +153,13 @@ def last_line_in_file(fname: str) -> str:
 
 class Result :
     def __init__(self, result: str, mem_used_MB: float|None, exit_status: int|None,
-                 perc_CPU: int|None, t: float|None, case: Case) :
+                 perc_CPU: int|None, t: float|None, tout: float|None, case: Case) :
         self.result = result
         self.exit_status = exit_status
         self.mem_used_MB = mem_used_MB
         self.perc_CPU = perc_CPU
         self.t = t
+        self.tout = tout
         self.case = case
 
 
@@ -209,7 +212,7 @@ def execute_case(tool: str, case: Case) -> Result:
 
     return Result(result=result, mem_used_MB=mem_used_MB,
                   perc_CPU=perc_CPU, exit_status=exit_status,
-                  t=time_taken, case=case)
+                  t=time_taken, tout=opts.timeout, case=case)
 
 
 # executes all tests contained in the argument cases mapping with all tools and
@@ -243,6 +246,28 @@ class ResultEncoder(json.JSONEncoder):
         return json.JSONEncoder.default(self, obj)
 
 
+def empty_if_none(x: None|int|float) ->str:
+    if x is None:
+        return ""
+    else: return "%s" % x
+
+
+def dump_results(solvers_results: dict[str, list[Result]], fname: str):
+    with open("%s.json" % fname, "w") as f:
+        f.write(json.dumps(solvers_results, indent=2, cls=ResultEncoder))
+    with open("%s.csv" % fname, "w") as f:
+        f.write("solver,name,result,correct,t,memMB,exit_status\n")
+        for solver,results in solvers_results.items():
+            for r in results:
+                corr_as_sqlite = ""
+                if r.result is not None: corr_as_sqlite = (int)(r.result == r.case.expected)
+                f.write("\"{solver}\",\"{case}\",\"{result}\",{corr},{t},{memMB},{exit_status}\n".format(
+                    solver=solver, case=r.case.get_name(), result=r.result,
+                    corr=corr_as_sqlite, t=empty_if_none(r.t),
+                    memMB=empty_if_none(r.mem_used_MB),
+                    exit_status=empty_if_none(r.exit_status)))
+
+
 # --- main ---
 
 
@@ -266,10 +291,6 @@ def set_up_parser():
 
     return parser
 
-def empty_if_none(x: None|int|float) ->str:
-    if x is None:
-        return ""
-    else: return "%s" % x
 
 def main() -> None:
     parser = set_up_parser()
@@ -286,19 +307,8 @@ def main() -> None:
     for c in cases: print("-> %s" % c)
     random.shuffle(cases)
     solvers_results = run_all_tests(cases[:opts.limit])
-    with open("results.json", "w") as f:
-        f.write(json.dumps(solvers_results, indent=2, cls=ResultEncoder))
-    with open("results.csv", "w") as f:
-        f.write("solver,case,result,correct,t,memMB,exit_status\n")
-        for solver,results in solvers_results.items():
-            for r in results:
-                corr_as_sqlite = ""
-                if r.result is not None: corr_as_sqlite = (int)(r.result == r.case.expected)
-                f.write("\"{solver}\",\"{case}\",\"{result}\",{corr},{t},{memMB},{exit_status}\n".format(
-                    solver=solver, case=r.case.get_name(), result=r.result,
-                    corr=corr_as_sqlite, t=empty_if_none(r.t),
-                    memMB=empty_if_none(r.mem_used_MB),
-                    exit_status=empty_if_none(r.exit_status)))
+    dump_results(solvers_results, "results")
+    os.system("sqlite3 results.db < results.sqlite")
 
 
 if __name__ == "__main__":

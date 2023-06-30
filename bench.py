@@ -270,7 +270,7 @@ def dump_results(solvers_results: dict[str, list[Result]], fname: str):
                 corr_as_sqlite = ""
                 if r.result is not None: corr_as_sqlite = (int)(r.result == r.case.expected)
                 f.write("\"{solver}\",\"{solc_version}\",\"{name}\",\"{result}\",{corr},{t},{timeout},{memMB},{exit_status}\n".format(
-                    solver=solver, solc_version=opts.solc_version, case=r.case.get_name(), result=r.result,
+                    solver=solver, solc_version=opts.solc_version, name=r.case.get_name(), result=r.result,
                     corr=corr_as_sqlite, t=empty_if_none(r.t),
                     timeout=r.tout, memMB=empty_if_none(r.mem_used_MB),
                     exit_status=empty_if_none(r.exit_status)))
@@ -291,7 +291,7 @@ def set_up_parser():
     parser.add_option("-s", dest="seed", type=int, default=1,
                       help="Seed for random numbers for reproducibility. Default: %default")
 
-    parser.add_option("-solcv", dest="solc_version", type=str, default="0.8.19",
+    parser.add_option("--solcv", dest="solc_version", type=str, default="0.8.19",
                       help="solc version to use to compile contracts")
 
     parser.add_option("-t", dest="timeout", type=int, default=25,

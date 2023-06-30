@@ -6,9 +6,10 @@ import sqlite3
 # Converts file to ascending space-delimited file that shows
 # the number of problems solved and the timeout it took to solve the next
 # file. Returns the number of problems solved in total
-def convert_to_cactus(fname: str, fname2: str) -> int:
-    f2 = open(fname2, "w")
+# CDF stands for Cumulative Distribution Function
+def convert_to_cdf(fname: str, fname2: str) -> int:
     f = open(fname, "r")
+    f2 = open(fname2, "w")
     text = f.read()
     mylines = text.splitlines()
     time = []
@@ -29,6 +30,21 @@ def convert_to_cactus(fname: str, fname2: str) -> int:
     f2.close()
     return len(mylines)
 
+# convert T1, T2, TOUT to make T1/T1 into TOUT in case they are empty
+def convert_to_tout(fname: str, fname2: str):
+    f = open(fname, "r")
+    f2 = open(fname2, "w")
+    for line in f:
+        line = line.strip().split(",")
+        if line[0].strip() == "":
+            line[0] = line[2]
+        if line[1].strip() == "":
+            line[2] = line[2]
+        f2.write("%s %s" % (line[0], line[1]))
+    f.close()
+    f2.close()
+
+
 # Get all solvers in the DB
 def get_solvers() -> list[str]:
     ret = []
@@ -40,7 +56,7 @@ def get_solvers() -> list[str]:
 
 
 # generates files for GNU to plot for each solver
-def gen_files() ->list[tuple[str, str, int]]:
+def gen_cdf_files() ->list[tuple[str, str, int]]:
     ret = []
     solvers = get_solvers()
     for solver in solvers:
@@ -54,16 +70,58 @@ def gen_files() ->list[tuple[str, str, int]]:
         os.system("sqlite3 results.db < gencsv.sqlite")
 
         fname2 = fname + ".gnuplotdata"
-        num_solved = convert_to_cactus(fname, fname2)
+        num_solved = convert_to_cdf(fname, fname2)
+        os.unlink(fname)
         ret.append([fname2, solver, num_solved])
     return ret
 
-def main():
-    files = gen_files()
+
+def gen_comparative_graphs() ->list[tuple[str, str, int]]:
+    ret = []
+    solvers = get_solvers()
+    for solver in solvers:
+        for solver2 in solvers:
+            if solver2 == solver: continue
+            # create data file
+            fname = "graphs/compare-"+solver+"-"+solver2+".csv"
+            with open("gencsv.sqlite", "w") as f:
+                f.write(".headers off\n")
+                f.write(".mode csv\n");
+                f.write(".output "+fname+"\n")
+                f.write("select a.t,b.t,a.tout from results as a, results as b where a.solver='"+solver+"' and b.solver='"+solver2+"' and a.name=b.name")
+            os.system("sqlite3 results.db < gencsv.sqlite")
+            fname2 = fname + ".gnuplotdata"
+            convert_to_tout(fname, fname2)
+            os.unlink(fname)
+
+            # create graph
+            gnuplotfn = "run-one.gnuplot"
+            with open(gnuplotfn, "w") as f:
+                f.write("set term postscript eps color lw 1 \"Helvetica\" 8 size 6,4\n")
+                f.write("set output \""+solver+"-vs-"+solver2+".eps\"\n")
+                f.write("set title \"Solvers\"\n")
+                f.write("set notitle\n")
+                f.write("set nokey\n")
+                f.write("set logscale x\n")
+                f.write("set logscale y\n")
+                f.write("set xlabel  \""+solver+"\"\n")
+                f.write("set ylabel  \""+solver2+"\"\n")
+                f.write("f(x) = x")
+                f.write("plot \\\n")
+                f.write("\""+fname2+"\" u 1:2 with points \\\n")
+                f.write("f(x) with lines ls 2 title \"y=x\"\n")
+
+            os.system("gnuplot "+gnuplotfn)
+            os.unlink(gnuplotfn)
+    return ret
+
+
+def gen_cdf_graph():
+    files = gen_cdf_files()
     gnuplotfn = "run-all.gnuplot"
     with open(gnuplotfn, "w") as f:
-        f.write("set term postscript eps color lw 1 \"Helvetica\" 8 size 6,4\n")
-        f.write("set output \"run.eps\"\n")
+        f.write("set term postscript eps color lw 1 \"Helvetica\" 8 size 4,4\n")
+        f.write("set output \"cdf.eps\"\n")
         f.write("set title \"Solvers\"\n")
         f.write("set notitle\n")
         f.write("set key bottom right\n")
@@ -80,8 +138,16 @@ def main():
         f.write(towrite)
 
     os.system("gnuplot "+gnuplotfn)
-    print("okular run.eps")
-    os.system("okular run.eps")
+    os.unlink(gnuplotfn)
+    for fname,_,_ in files:
+        os.unlink(fname)
+
+    print("okular cdf.eps")
+
+
+def main():
+    gen_cdf_graph()
+    gen_comparative_graphs()
 
 
 if __name__ == "__main__":

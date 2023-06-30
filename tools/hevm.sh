@@ -21,32 +21,32 @@ else
 fi
 
 if [[ $out =~ "[FAIL]" ]]; then
-  echo "unsafe"
+  echo "result: unsafe"
   exit 0
 fi
 
 if [[ $out =~ "[PASS]" ]]; then
-  echo "safe"
+  echo "result: safe"
   exit 0
 fi
 
 if [[ $out =~ "QED: No reachable property violations discovered" ]]; then
-  echo "safe"
+  echo "result: safe"
   exit 0
 fi
 
 if [[ $out =~ "Discovered the following counterexamples" ]]; then
-  echo "unsafe"
+  echo "result: unsafe"
   exit 0
 fi
 
 if [[ $out =~ "Could not determine reachability of the following end states" ]]; then
-  echo "unknown"
+  echo "result: unknown"
   exit 0
 fi
 
 if [[ $out =~ "cannot delegateCall with symbolic target or context" ]]; then
-  echo "unknown"
+  echo "result: unknown"
   exit 0
 fi
 

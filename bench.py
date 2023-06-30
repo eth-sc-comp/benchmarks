@@ -12,7 +12,7 @@ from typing import Dict, Tuple, Any, Literal
 import optparse
 
 SOLC_VERSION = "0.8.19"
-tools = {"hevm": "tools/hevm.sh"}
+tools = {"hevm": ["tools/hevm.sh", "tools/hevm_version.sh"]}
 global opts
 
 def verb_print(*arg):
@@ -172,7 +172,8 @@ def execute_case(tool: str, case: Case) -> Result:
     before: int = time.time_ns()
     tmp_f = unique_file("output")
     tmp_f2 = unique_file("output")
-    toexec = ["/usr/bin/time", "--verbose", "-o", "%s" % tmp_f2, "./runlim/runlim", "--real-time-limit=%s" % opts.timeout, "--output-file=%s" % tmp_f,
+    toexec = ["/usr/bin/time", "--verbose", "-o", "%s" % tmp_f2, "./runlim/runlim",
+              "--real-time-limit=%s" % opts.timeout, "--output-file=%s" % tmp_f,
               tool, case.sol_file, case.contract, case.fun, "%i" % case.ds]
     print("Running: %s" % (" ".join(toexec)))
     res = subprocess.run( toexec, capture_output=True, encoding="utf-8")
@@ -185,13 +186,14 @@ def execute_case(tool: str, case: Case) -> Result:
         for l in f:
             # if opts.verbose: print("runlim output line: ", l.strip())
             if re.match("^.runlim. status:.*out of time", l): out_of_time = True
-    if not out_of_time:
-        if opts.verbose: print("Res stdout is:", res.stdout)
-        if opts.verbose: print("Res stderr is:", res.stderr)
-        result = res.stdout.strip()
-        time_taken = (after - before) / 1_000_000
-    else:
-        result = "unknown"
+    if opts.verbose: print("Res stdout is:", res.stdout)
+    if opts.verbose: print("Res stderr is:", res.stderr)
+    for l in res.stdout.split("\n"):
+        l = l.strip()
+        match = re.match("result: (.*)$", l)
+        if match: result = match.group(1)
+    time_taken = (after - before) / 1_000_000_000
+    if out_of_time or result is None: result = "unknown"
 
     with open(tmp_f2, 'r') as f:
         for l in f:
@@ -215,6 +217,14 @@ def execute_case(tool: str, case: Case) -> Result:
                   t=time_taken, tout=opts.timeout, case=case)
 
 
+def get_version(script: str) -> str:
+    toexec = [script]
+    print("Running: %s" % (" ".join(toexec)))
+    res = subprocess.run( toexec, capture_output=True, encoding="utf-8")
+    res.check_returncode()
+    return res.stdout.rstrip()
+
+
 # executes all tests contained in the argument cases mapping with all tools and
 # builds the result dict
 def run_all_tests(cases: list[Case]) -> dict[str, list[Result]]:
@@ -222,10 +232,11 @@ def run_all_tests(cases: list[Case]) -> dict[str, list[Result]]:
     # dictionary (tool -> file -> contract -> (expected, result, time_taken))
     results: dict[str, list[Result]] = {}
     for tool, script in tools.items():
+        version = get_version(script[1])
         res = []
         for c in cases:
-            res.append(execute_case(script, c))
-        results[tool] = res
+            res.append(execute_case(script[0], c))
+        results["%s-%s" % (tool, version)] = res
     return results
 
 

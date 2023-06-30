@@ -6,6 +6,7 @@ CREATE TABLE results (
 
   correct INT,
   t FLOAT,
+  tout FLOAT,
   memMB FLOAT,
   exit_status INT
 );

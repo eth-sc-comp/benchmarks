@@ -267,15 +267,15 @@ def dump_results(solvers_results: dict[str, list[Result]], fname: str):
     with open("%s.json" % fname, "w") as f:
         f.write(json.dumps(solvers_results, indent=2, cls=ResultEncoder))
     with open("%s.csv" % fname, "w") as f:
-        f.write("solver,name,result,correct,t,memMB,exit_status\n")
+        f.write("solver,name,result,correct,t,timeout,memMB,exit_status\n")
         for solver,results in solvers_results.items():
             for r in results:
                 corr_as_sqlite = ""
                 if r.result is not None: corr_as_sqlite = (int)(r.result == r.case.expected)
-                f.write("\"{solver}\",\"{case}\",\"{result}\",{corr},{t},{memMB},{exit_status}\n".format(
+                f.write("\"{solver}\",\"{case}\",\"{result}\",{corr},{t},{timeout},{memMB},{exit_status}\n".format(
                     solver=solver, case=r.case.get_name(), result=r.result,
                     corr=corr_as_sqlite, t=empty_if_none(r.t),
-                    memMB=empty_if_none(r.mem_used_MB),
+                    timeout=r.tout, memMB=empty_if_none(r.mem_used_MB),
                     exit_status=empty_if_none(r.exit_status)))
 
 

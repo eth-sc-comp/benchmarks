@@ -35,12 +35,18 @@ def convert_to_tout(fname: str, fname2: str):
     f = open(fname, "r")
     f2 = open(fname2, "w")
     for line in f:
+        out: list[float] = []
         line = line.strip().split(",")
+        tout = float(line[2])
         if line[0].strip() == "":
-            line[0] = line[2]
+            out.append(tout)
+        else:
+            out.append(min(float(line[0]), tout))
         if line[1].strip() == "":
-            line[2] = line[2]
-        f2.write("%s %s" % (line[0], line[1]))
+            out.append(tout)
+        else:
+            out.append(min(float(line[1]), tout))
+        f2.write("%s %s\n" % (out[0], out[1]))
     f.close()
     f2.close()
 
@@ -88,7 +94,7 @@ def gen_comparative_graphs() ->list[tuple[str, str, int]]:
                 f.write(".headers off\n")
                 f.write(".mode csv\n");
                 f.write(".output "+fname+"\n")
-                f.write("select a.t,b.t,a.tout from results as a, results as b where a.solver='"+solver+"' and b.solver='"+solver2+"' and a.name=b.name")
+                f.write("select (case when a.result=='unknown' then a.tout else a.t end),(case when b.result=='unknown' then b.tout else b.t end),a.tout from results as a, results as b where a.solver='"+solver+"' and b.solver='"+solver2+"' and a.name=b.name")
             os.system("sqlite3 results.db < gencsv.sqlite")
             fname2 = fname + ".gnuplotdata"
             convert_to_tout(fname, fname2)
@@ -96,23 +102,25 @@ def gen_comparative_graphs() ->list[tuple[str, str, int]]:
 
             # create graph
             gnuplotfn = "run-one.gnuplot"
+            outfname = solver+"-vs-"+solver2+".eps"
             with open(gnuplotfn, "w") as f:
                 f.write("set term postscript eps color lw 1 \"Helvetica\" 8 size 6,4\n")
-                f.write("set output \""+solver+"-vs-"+solver2+".eps\"\n")
-                f.write("set title \"Solvers\"\n")
+                f.write("set output \""+outfname+"\"\n")
                 f.write("set notitle\n")
                 f.write("set nokey\n")
                 f.write("set logscale x\n")
                 f.write("set logscale y\n")
                 f.write("set xlabel  \""+solver+"\"\n")
                 f.write("set ylabel  \""+solver2+"\"\n")
-                f.write("f(x) = x")
-                f.write("plot \\\n")
-                f.write("\""+fname2+"\" u 1:2 with points \\\n")
-                f.write("f(x) with lines ls 2 title \"y=x\"\n")
+                f.write("f(x) = x\n")
+                f.write("plot[0.001:] \\\n")
+                f.write("\""+fname2+"\" u 1:2 with points\\\n")
+                f.write(",f(x) with lines ls 2 title \"y=x\"\n")
 
             os.system("gnuplot "+gnuplotfn)
             os.unlink(gnuplotfn)
+            os.unlink(fname2)
+            print("okular %s" % outfname)
     return ret
 
 

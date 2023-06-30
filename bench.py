@@ -8,25 +8,20 @@ import stat
 import json
 import re
 import random
-from typing import Dict, Tuple, Any, Literal
+from typing import Literal
 import optparse
 
-SOLC_VERSION = "0.8.19"
 tools = {"hevm": ["tools/hevm.sh", "tools/hevm_version.sh"]}
 global opts
 
-def verb_print(*arg):
-    if opts.verbose:
-        print(*arg)
 
-
+# make output printable to console by replacing special characters
 def printable_output(out):
     return ("%s" % out).replace('\\n', '\n').replace('\\t', '\t')
 
 
 def build_contracts() -> None:
-    ret = subprocess.run(["forge", "build", "--use", SOLC_VERSION], capture_output=True)
-    print(printable_output(ret.stdout))
+    ret = subprocess.run(["forge", "build", "--use", opts.solc_version], capture_output=True)
     if ret.returncode != 0:
         print("Forge returned error(s)")
         print(printable_output(ret.stderr))
@@ -248,10 +243,12 @@ class ResultEncoder(json.JSONEncoder):
             else: correct = None
             return {
                 "name": obj.case.get_name(),
+                "solc_version": opts.solc_version,
                 "ds": obj.case.ds,
                 "solved": solved,
                 "correct":correct,
                 "t": obj.t,
+                "tout": obj.tout,
                 "memMB": obj.mem_used_MB,
                 "exit_status": obj.exit_status}
         return json.JSONEncoder.default(self, obj)
@@ -267,13 +264,13 @@ def dump_results(solvers_results: dict[str, list[Result]], fname: str):
     with open("%s.json" % fname, "w") as f:
         f.write(json.dumps(solvers_results, indent=2, cls=ResultEncoder))
     with open("%s.csv" % fname, "w") as f:
-        f.write("solver,name,result,correct,t,timeout,memMB,exit_status\n")
+        f.write("solver,solc_version,name,result,correct,t,timeout,memMB,exit_status\n")
         for solver,results in solvers_results.items():
             for r in results:
                 corr_as_sqlite = ""
                 if r.result is not None: corr_as_sqlite = (int)(r.result == r.case.expected)
-                f.write("\"{solver}\",\"{case}\",\"{result}\",{corr},{t},{timeout},{memMB},{exit_status}\n".format(
-                    solver=solver, case=r.case.get_name(), result=r.result,
+                f.write("\"{solver}\",\"{solc_version}\",\"{name}\",\"{result}\",{corr},{t},{timeout},{memMB},{exit_status}\n".format(
+                    solver=solver, solc_version=opts.solc_version, case=r.case.get_name(), result=r.result,
                     corr=corr_as_sqlite, t=empty_if_none(r.t),
                     timeout=r.tout, memMB=empty_if_none(r.mem_used_MB),
                     exit_status=empty_if_none(r.exit_status)))
@@ -293,6 +290,9 @@ def set_up_parser():
 
     parser.add_option("-s", dest="seed", type=int, default=1,
                       help="Seed for random numbers for reproducibility. Default: %default")
+
+    parser.add_option("-solcv", dest="solc_version", type=str, default="0.8.19",
+                      help="solc version to use to compile contracts")
 
     parser.add_option("-t", dest="timeout", type=int, default=25,
                       help="Max time to run. Default: %default")

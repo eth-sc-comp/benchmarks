@@ -1,6 +1,7 @@
 DROP TABLE IF EXISTS results;
 CREATE TABLE results (
   solver STRING NOT NULL,
+  solc_version STRING NOT NULL,
   name STRING NOT NULL,
   result STRING NOT NULL,
 

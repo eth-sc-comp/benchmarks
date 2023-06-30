@@ -35,7 +35,7 @@ def get_solvers() -> list[str]:
     with sqlite3.connect("results.db") as con:
         cur = con.cursor()
         res = cur.execute("SELECT solver FROM results group by solver")
-        for a in res: ret.append([a[0]])
+        for a in res: ret.append(a[0])
     return ret
 
 
@@ -51,7 +51,7 @@ def gen_files() ->list[tuple[str, str, int]]:
             f.write(".mode csv\n");
             f.write(".output "+fname+"\n")
             f.write("select t from results where solver='"+solver+"'\n and result!='unknown'")
-        os.system("sqlite3 mydb.sql < gencsv.sqlite")
+        os.system("sqlite3 results.db < gencsv.sqlite")
 
         fname2 = fname + ".gnuplotdata"
         num_solved = convert_to_cactus(fname, fname2)

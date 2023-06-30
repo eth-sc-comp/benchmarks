@@ -169,6 +169,7 @@ def execute_case(tool: str, case: Case) -> Result:
     tmp_f2 = unique_file("output")
     toexec = ["/usr/bin/time", "--verbose", "-o", "%s" % tmp_f2, "./runlim/runlim",
               "--real-time-limit=%s" % opts.timeout, "--output-file=%s" % tmp_f,
+              "--kill-delay=10",
               tool, case.sol_file, case.contract, case.fun, "%i" % case.ds]
     print("Running: %s" % (" ".join(toexec)))
     res = subprocess.run( toexec, capture_output=True, encoding="utf-8")

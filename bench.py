@@ -151,18 +151,21 @@ def last_line_in_file(fname: str) -> str:
 
 # executes the given tool script against the given test case and returns the
 # time taken and the reported result
-def execute_case(tool: str, case: Case) -> Tuple[int|None, str]:
+def execute_case(tool: str, case: Case) -> Tuple[float|None, float|None, int|None, str]:
     time_taken = None
     result = None
     res = None
     before: int = time.time_ns()
     tmp_f = unique_file("output")
-    toexec = ["./runlim/runlim", "--real-time-limit=%s" % opts.timeout, "--output-file=%s" % tmp_f,
+    tmp_f2 = unique_file("output")
+    toexec = ["/usr/bin/time", "--verbose", "-o", "%s" % tmp_f2, "./runlim/runlim", "--real-time-limit=%s" % opts.timeout, "--output-file=%s" % tmp_f,
               tool, case.sol_file, case.contract, case.fun, "%i" % case.ds]
     print("Running: %s" % (" ".join(toexec)))
     res = subprocess.run( toexec, capture_output=True, encoding="utf-8")
     after: int = time.time_ns()
     out_of_time = False
+    mem_used_MB = None
+    exit_status = None
     with open(tmp_f, 'r') as f:
         for l in f:
             # if opts.verbose: print("runlim output line: ", l.strip())
@@ -170,20 +173,30 @@ def execute_case(tool: str, case: Case) -> Tuple[int|None, str]:
     if not out_of_time:
         if opts.verbose: print("Res stdout is:", res.stdout)
         if opts.verbose: print("Res stderr is:", res.stderr)
-        result = res.stdout.rstrip()
-        time_taken = (after - before) // 1_000_000
+        result = res.stdout.strip()
+        time_taken = (after - before) / 1_000_000
     else:
         result = "unknown"
+
+    with open(tmp_f2, 'r') as f:
+        for l in f:
+            l = l.strip();
+            match = re.match(r"Maximum resident set size .kbytes. (.*)", l)
+            if match: mem_used_MB = int(match.group(1))/1000
+            match = re.match(r"Exit status: (.*)", l)
+            if match: exit_status = int(match.group(1))
 
     assert result == "safe" or result == "unsafe" or result == "unknown"
     os.unlink(tmp_f)
     if opts.verbose: print("Result is: ", result)
-    return (time_taken, result)
+    return (time_taken, mem_used_MB, exit_status, result)
 
 
 class Result :
-    def __init__(self, result: str, t: float|None, case: Case) :
+    def __init__(self, result: str, mem_used_MB: float|None, exit_status: int|None, t: float|None, case: Case) :
         self.result = result
+        self.exit_status = exit_status
+        self.mem_used_MB = mem_used_MB
         self.t = t
         self.case = case
 
@@ -197,8 +210,8 @@ def run_all_tests(cases: list[Case]) -> dict[str, list[Result]]:
     for tool, script in tools.items():
         res = []
         for c in cases:
-            (time, result) = execute_case(script, c)
-            res.append(Result(result, time, c))
+            (t, mem_used_MB, exit_status, result) = execute_case(script, c)
+            res.append(Result(result, mem_used_MB, exit_status, t, c))
         results[tool] = res
     return results
 
@@ -209,7 +222,14 @@ class ResultEncoder(json.JSONEncoder):
             solved = obj.result == "safe" or obj.result == "unsafe"
             if solved: correct = obj.result == obj.case.expected
             else: correct = None
-            return {"name": obj.case.get_name(), "ds": obj.case.ds, "solved": solved, "correct":correct, "t": obj.t}
+            return {
+                "name": obj.case.get_name(),
+                "ds": obj.case.ds,
+                "solved": solved,
+                "correct":correct,
+                "t": obj.t,
+                "memMB": obj.mem_used_MB,
+                "exit_status": obj.exit_status}
         return json.JSONEncoder.default(self, obj)
 
 
@@ -236,6 +256,10 @@ def set_up_parser():
 
     return parser
 
+def empty_if_none(x: None|int|float) ->str:
+    if x is None:
+        return ""
+    else: return "%s" % x
 
 def main() -> None:
     parser = set_up_parser()
@@ -251,9 +275,20 @@ def main() -> None:
     print("cases gathered: ")
     for c in cases: print("-> %s" % c)
     random.shuffle(cases)
-    results = run_all_tests(cases[:opts.limit])
-    with open("results.json", "w") as res:
-        res.write(json.dumps(results, indent=2, cls=ResultEncoder))
+    solvers_results = run_all_tests(cases[:opts.limit])
+    with open("results.json", "w") as f:
+        f.write(json.dumps(solvers_results, indent=2, cls=ResultEncoder))
+    with open("results.csv", "w") as f:
+        f.write("solver,instance,result,correct,time\n")
+        for solver,results in solvers_results.items():
+            for r in results:
+                corr_as_sqlite = ""
+                if r.result is not None: corr_as_sqlite = (r.result == r.case.expected)
+                f.write("\"{solver}\",\"{case}\",\"{result}\",{corr},{t},{memMB},{exit_status}\n".format(
+                    solver=solver, case=r.case.get_name(), result=r.result,
+                    corr=corr_as_sqlite, t=empty_if_none(r.t),
+                    memMB=empty_if_none(r.mem_used_MB),
+                    exit_status=empty_if_none(r.exit_status)))
 
 
 if __name__ == "__main__":

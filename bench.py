@@ -149,9 +149,20 @@ def last_line_in_file(fname: str) -> str:
         return last_line
 
 
+class Result :
+    def __init__(self, result: str, mem_used_MB: float|None, exit_status: int|None,
+                 perc_CPU: int|None, t: float|None, case: Case) :
+        self.result = result
+        self.exit_status = exit_status
+        self.mem_used_MB = mem_used_MB
+        self.perc_CPU = perc_CPU
+        self.t = t
+        self.case = case
+
+
 # executes the given tool script against the given test case and returns the
 # time taken and the reported result
-def execute_case(tool: str, case: Case) -> Tuple[float|None, float|None, int|None, str]:
+def execute_case(tool: str, case: Case) -> Result:
     time_taken = None
     result = None
     res = None
@@ -166,6 +177,7 @@ def execute_case(tool: str, case: Case) -> Tuple[float|None, float|None, int|Non
     out_of_time = False
     mem_used_MB = None
     exit_status = None
+    perc_CPU = None
     with open(tmp_f, 'r') as f:
         for l in f:
             # if opts.verbose: print("runlim output line: ", l.strip())
@@ -181,24 +193,23 @@ def execute_case(tool: str, case: Case) -> Tuple[float|None, float|None, int|Non
     with open(tmp_f2, 'r') as f:
         for l in f:
             l = l.strip();
-            match = re.match(r"Maximum resident set size .kbytes. (.*)", l)
+            match = re.match(r"Maximum resident set size .kbytes.: (.*)", l)
             if match: mem_used_MB = int(match.group(1))/1000
-            match = re.match(r"Exit status: (.*)", l)
+
+            match = re.match(r"Percent of CPU this job got: (.*)%", l)
+            if match: perc_CPU = int(match.group(1))
+
+            match = re.match(r"Exit status:[ ]*(.*)[ ]*$", l)
             if match: exit_status = int(match.group(1))
 
     assert result == "safe" or result == "unsafe" or result == "unknown"
     os.unlink(tmp_f)
+    os.unlink(tmp_f2)
     if opts.verbose: print("Result is: ", result)
-    return (time_taken, mem_used_MB, exit_status, result)
 
-
-class Result :
-    def __init__(self, result: str, mem_used_MB: float|None, exit_status: int|None, t: float|None, case: Case) :
-        self.result = result
-        self.exit_status = exit_status
-        self.mem_used_MB = mem_used_MB
-        self.t = t
-        self.case = case
+    return Result(result=result, mem_used_MB=mem_used_MB,
+                  perc_CPU=perc_CPU, exit_status=exit_status,
+                  t=time_taken, case=case)
 
 
 # executes all tests contained in the argument cases mapping with all tools and
@@ -210,8 +221,7 @@ def run_all_tests(cases: list[Case]) -> dict[str, list[Result]]:
     for tool, script in tools.items():
         res = []
         for c in cases:
-            (t, mem_used_MB, exit_status, result) = execute_case(script, c)
-            res.append(Result(result, mem_used_MB, exit_status, t, c))
+            res.append(execute_case(script, c))
         results[tool] = res
     return results
 
@@ -279,11 +289,11 @@ def main() -> None:
     with open("results.json", "w") as f:
         f.write(json.dumps(solvers_results, indent=2, cls=ResultEncoder))
     with open("results.csv", "w") as f:
-        f.write("solver,instance,result,correct,time\n")
+        f.write("solver,case,result,correct,t,memMB,exit_status\n")
         for solver,results in solvers_results.items():
             for r in results:
                 corr_as_sqlite = ""
-                if r.result is not None: corr_as_sqlite = (r.result == r.case.expected)
+                if r.result is not None: corr_as_sqlite = (int)(r.result == r.case.expected)
                 f.write("\"{solver}\",\"{case}\",\"{result}\",{corr},{t},{memMB},{exit_status}\n".format(
                     solver=solver, case=r.case.get_name(), result=r.result,
                     corr=corr_as_sqlite, t=empty_if_none(r.t),

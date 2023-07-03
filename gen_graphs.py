@@ -32,11 +32,11 @@ def convert_to_cdf(fname: str, fname2: str) -> int:
     return len(mylines)
 
 
-# convert T1, T2, TOUT to make T1/T1 into TOUT in case they are empty
-def convert_to_tout(fname: str, fname2: str):
-    f = open(fname, "r")
-    f2 = open(fname2, "w")
-    for line in f:
+# convert `T1, T2, TOUT` by making T1&T2 into TOUT in case they are empty
+def convert_to_tout(fname_in: str, fname_out: str):
+    f_in = open(fname_in, "r")
+    f_out = open(fname_out, "w")
+    for line in f_in:
         out: list[float] = []
         line = line.strip().split(",")
         tout = float(line[2])
@@ -48,9 +48,9 @@ def convert_to_tout(fname: str, fname2: str):
             out.append(tout)
         else:
             out.append(min(float(line[1]), tout))
-        f2.write("%s %s\n" % (out[0], out[1]))
-    f.close()
-    f2.close()
+        f_out.write("%s %s\n" % (out[0], out[1]))
+    f_in.close()
+    f_out.close()
 
 
 # Get all solvers in the DB

@@ -3,6 +3,7 @@
 import os
 import sqlite3
 
+
 # Converts file to ascending space-delimited file that shows
 # the number of problems solved and the timeout it took to solve the next
 # file. Returns the number of problems solved in total
@@ -13,22 +14,23 @@ def convert_to_cdf(fname: str, fname2: str) -> int:
     text = f.read()
     mylines = text.splitlines()
     time = []
-    for line in mylines :
-      time.append(float(line.split()[0]))
+    for line in mylines:
+        time.append(float(line.split()[0]))
 
     lastnum = -1
     for a in range(0, 3600, 1):
-      num = 0
-      for t in time:
-        if (t < a) :
-          num += 1
+        num = 0
+        for t in time:
+            if (t < a):
+                num += 1
 
-      if (lastnum != num) :
-          f2.write("%d \t%d\n" %(num, a))
-      lastnum = num
+        if (lastnum != num):
+            f2.write("%d \t%d\n" % (num, a))
+        lastnum = num
     f.close()
     f2.close()
     return len(mylines)
+
 
 # convert T1, T2, TOUT to make T1/T1 into TOUT in case they are empty
 def convert_to_tout(fname: str, fname2: str):
@@ -57,7 +59,8 @@ def get_solvers() -> list[str]:
     with sqlite3.connect("results.db") as con:
         cur = con.cursor()
         res = cur.execute("SELECT solver FROM results group by solver")
-        for a in res: ret.append(a[0])
+        for a in res:
+            ret.append(a[0])
     return ret
 
 
@@ -67,19 +70,22 @@ def gen_cdf_files() ->list[tuple[str, str, int]]:
     solvers = get_solvers()
     print("Solvers: ", solvers)
     for solver in solvers:
-        fname = "graphs/run-"+solver+".csv"
-        with open("gencsv.sqlite", "w") as f:
+        fname_csv = "graphs/run-"+solver+".csv"
+        fname_csv_gen = "gencsv.sqlite"
+        with open(fname_csv_gen, "w") as f:
             f.write(".headers off\n")
-            f.write(".mode csv\n");
-            f.write(".output "+fname+"\n")
+            f.write(".mode csv\n")
+            f.write(".output "+fname_csv+"\n")
             f.write("select t from results where solver='"+solver+"'\n and result!='unknown'")
-        os.system("sqlite3 results.db < gencsv.sqlite")
+        os.system("sqlite3 results.db < %s" % fname_csv_gen)
+        os.unlink(fname_csv_gen)
 
-        fname2 = fname + ".gnuplotdata"
-        num_solved = convert_to_cdf(fname, fname2)
-        os.unlink(fname)
-        ret.append([fname2, solver, num_solved])
+        fname_cdf = fname_csv + ".gnuplotdata"
+        num_solved = convert_to_cdf(fname_csv, fname_cdf)
+        os.unlink(fname_csv)
+        ret.append([fname_cdf, solver, num_solved])
     return ret
+
 
 # Generates graphs with 2 solvers on X/Y axis and the dots representing problems that were solved
 # by the different solvers.
@@ -88,12 +94,13 @@ def gen_comparative_graphs() ->list[tuple[str, str, int]]:
     solvers = get_solvers()
     for solver in solvers:
         for solver2 in solvers:
-            if solver2 == solver: continue
+            if solver2 == solver:
+                continue
             # create data file
             fname = "graphs/compare-"+solver+"-"+solver2+".csv"
             with open("gencsv.sqlite", "w") as f:
                 f.write(".headers off\n")
-                f.write(".mode csv\n");
+                f.write(".mode csv\n")
                 f.write(".output "+fname+"\n")
                 # We need to make sure if something is unsolved by a solver, it shows up at the top/rightmost point
                 f.write("select (case when a.result=='unknown' then a.tout else a.t end),(case when b.result=='unknown' then b.tout else b.t end),a.tout from results as a, results as b where a.solver='"+solver+"' and b.solver='"+solver2+"' and a.name=b.name")
@@ -102,11 +109,11 @@ def gen_comparative_graphs() ->list[tuple[str, str, int]]:
             convert_to_tout(fname, fname_gnuplot_data)
             os.unlink(fname)
 
-            gnuplot_fname = "compare.gnuplot"
-            outfname = solver+"-vs-"+solver2+".eps"
-            with open(gnuplot_fname, "w") as f:
+            fname_gnuplot = "compare.gnuplot"
+            fname_eps = solver+"-vs-"+solver2+".eps"
+            with open(fname_gnuplot, "w") as f:
                 f.write("set term postscript eps color lw 1 \"Helvetica\" 8 size 6,4\n")
-                f.write("set output \""+outfname+"\"\n")
+                f.write("set output \""+fname_eps+"\"\n")
                 f.write("set notitle\n")
                 f.write("set nokey\n")
                 f.write("set logscale x\n")
@@ -118,17 +125,17 @@ def gen_comparative_graphs() ->list[tuple[str, str, int]]:
                 f.write("\""+fname_gnuplot_data+"\" u 1:2 with points\\\n")
                 f.write(",f(x) with lines ls 2 title \"y=x\"\n")
 
-            os.system("gnuplot "+gnuplot_fname)
-            os.unlink(gnuplot_fname)
+            os.system("gnuplot "+fname_gnuplot)
+            os.unlink(fname_gnuplot)
             os.unlink(fname_gnuplot_data)
-            print("okular %s" % outfname)
+            print("okular %s" % fname_eps)
     return ret
 
 
 def gen_cdf_graph():
-    files = gen_cdf_files()
-    gnuplot_fname = "cdf.gnuplot"
-    with open(gnuplot_fname, "w") as f:
+    cdf_files = gen_cdf_files()
+    fname_gnuplot = "cdf.gnuplot"
+    with open(fname_gnuplot, "w") as f:
         f.write("set term postscript eps color lw 1 \"Helvetica\" 8 size 4,4\n")
         f.write("set output \"cdf.eps\"\n")
         f.write("set title \"Solvers\"\n")
@@ -140,15 +147,15 @@ def gen_cdf_graph():
         f.write("set xlabel \"Wallclock Time (s)\"\n")
         f.write("plot \\\n")
         towrite = ""
-        for fname,solver,_ in files:
-            towrite +="\""+fname+"\" u 2:1 with linespoints  title \""+solver+"\""
-            towrite +=",\\\n"
+        for fname, solver, _ in cdf_files:
+            towrite += "\""+fname+"\" u 2:1 with linespoints  title \""+solver+"\""
+            towrite += ",\\\n"
         towrite = towrite[:(len(towrite)-4)]
         f.write(towrite)
 
-    os.system("gnuplot "+gnuplot_fname)
-    os.unlink(gnuplot_fname)
-    for fname,_,_ in files:
+    os.system("gnuplot "+fname_gnuplot)
+    os.unlink(fname_gnuplot)
+    for fname, _, _ in cdf_files:
         os.unlink(fname)
 
     print("okular cdf.eps")

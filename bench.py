@@ -33,11 +33,14 @@ def build_contracts() -> None:
 def get_prove_funcs(js) -> list[str]:
     ret = []
     for i in range(len(js["abi"])):
-        if "name" not in js["abi"][i]: continue
+        if "name" not in js["abi"][i]:
+            continue
         fun = js["abi"][i]["name"]
-        if "prove" in fun: ret.append(fun)
+        if "prove" in fun:
+            ret.append(fun)
 
     return ret
+
 
 # determines whether dstest or not
 def determine_dstest(sol_file: str) -> bool:
@@ -49,6 +52,7 @@ def determine_dstest(sol_file: str) -> bool:
         raise ValueError(
             "solidity file is neither in 'ds-test' nor in '1tx-abstract' directory: " + sol_file
         )
+
 
 # determines whether or not a given test case is expected to be safe or unsafe
 def determine_expected(sol_file: str) -> Literal["safe"] | Literal["unsafe"]:
@@ -79,12 +83,12 @@ class Case:
 
     def __str__(self):
         out = ""
-        out+="Contract: %s, " % self.contract
+        out += "Contract: %s, " % self.contract
         if self.ds:
-            out+="Function: %s, " % self.fun
-        out+="JSON filename: %s, " % self.json_fname
-        out+="Is DS?: %s, " % self.ds
-        out+="Expected result: %s" % self.expected
+            out += "Function: %s, " % self.fun
+        out += "JSON filename: %s, " % self.json_fname
+        out += "Is DS?: %s, " % self.ds
+        out += "Expected result: %s" % self.expected
         return out
 
 
@@ -139,6 +143,7 @@ def unique_file(fname_begin, fname_end=".out"):
         print("ERROR: Cannot create unique temporary file")
         exit(-1)
 
+
 def last_line_in_file(fname: str) -> str:
     with open(fname, 'r') as f:
         lines = f.read().splitlines()
@@ -146,9 +151,9 @@ def last_line_in_file(fname: str) -> str:
         return last_line
 
 
-class Result :
+class Result:
     def __init__(self, result: str, mem_used_MB: float|None, exit_status: int|None,
-                 perc_CPU: int|None, t: float|None, tout: float|None, case: Case) :
+                 perc_CPU: int|None, t: float|None, tout: float|None, case: Case):
         self.result = result
         self.exit_status = exit_status
         self.mem_used_MB = mem_used_MB
@@ -164,7 +169,7 @@ def execute_case(tool: str, case: Case) -> Result:
     time_taken = None
     result = None
     res = None
-    before: int = time.time_ns()
+    before = time.time_ns()
     tmp_f = unique_file("output")
     tmp_f2 = unique_file("output")
     toexec = ["/usr/bin/time", "--verbose", "-o", "%s" % tmp_f2, "./runlim/runlim",
@@ -172,8 +177,8 @@ def execute_case(tool: str, case: Case) -> Result:
               "--kill-delay=10",
               tool, case.sol_file, case.contract, case.fun, "%i" % case.ds]
     print("Running: %s" % (" ".join(toexec)))
-    res = subprocess.run( toexec, capture_output=True, encoding="utf-8")
-    after: int = time.time_ns()
+    res = subprocess.run(toexec, capture_output=True, encoding="utf-8")
+    after = time.time_ns()
     out_of_time = False
     mem_used_MB = None
     exit_status = None
@@ -182,31 +187,38 @@ def execute_case(tool: str, case: Case) -> Result:
         for l in f:
             # if opts.verbose: print("runlim output line: ", l.strip())
             if re.match("^.runlim. status:.*out of time", l): out_of_time = True
-    if opts.verbose: print("Res stdout is:", res.stdout)
-    if opts.verbose: print("Res stderr is:", res.stderr)
+    if opts.verbose:
+            print("Res stdout is:", res.stdout)
+            print("Res stderr is:", res.stderr)
     for l in res.stdout.split("\n"):
         l = l.strip()
         match = re.match("result: (.*)$", l)
-        if match: result = match.group(1)
+        if match:
+            result = match.group(1)
     time_taken = (after - before) / 1_000_000_000
-    if out_of_time or result is None: result = "unknown"
+    if out_of_time or result is None:
+        result = "unknown"
 
     with open(tmp_f2, 'r') as f:
         for l in f:
-            l = l.strip();
+            l = l.strip()
             match = re.match(r"Maximum resident set size .kbytes.: (.*)", l)
-            if match: mem_used_MB = int(match.group(1))/1000
+            if match:
+                mem_used_MB = int(match.group(1))/1000
 
             match = re.match(r"Percent of CPU this job got: (.*)%", l)
-            if match: perc_CPU = int(match.group(1))
+            if match:
+                perc_CPU = int(match.group(1))
 
             match = re.match(r"Exit status:[ ]*(.*)[ ]*$", l)
-            if match: exit_status = int(match.group(1))
+            if match:
+                exit_status = int(match.group(1))
 
     assert result == "safe" or result == "unsafe" or result == "unknown"
     os.unlink(tmp_f)
     os.unlink(tmp_f2)
-    if opts.verbose: print("Result is: ", result)
+    if opts.verbose:
+        print("Result is: ", result)
 
     return Result(result=result, mem_used_MB=mem_used_MB,
                   perc_CPU=perc_CPU, exit_status=exit_status,
@@ -216,7 +228,7 @@ def execute_case(tool: str, case: Case) -> Result:
 def get_version(script: str) -> str:
     toexec = [script]
     print("Running: %s" % (" ".join(toexec)))
-    res = subprocess.run( toexec, capture_output=True, encoding="utf-8")
+    res = subprocess.run(toexec, capture_output=True, encoding="utf-8")
     res.check_returncode()
     return res.stdout.rstrip()
 
@@ -240,14 +252,16 @@ class ResultEncoder(json.JSONEncoder):
     def default(self, obj):
         if isinstance(obj, Result):
             solved = obj.result == "safe" or obj.result == "unsafe"
-            if solved: correct = obj.result == obj.case.expected
-            else: correct = None
+            if solved:
+                correct = obj.result == obj.case.expected
+            else:
+                correct = None
             return {
                 "name": obj.case.get_name(),
                 "solc_version": opts.solc_version,
                 "ds": obj.case.ds,
                 "solved": solved,
-                "correct":correct,
+                "correct": correct,
                 "t": obj.t,
                 "tout": obj.tout,
                 "memMB": obj.mem_used_MB,
@@ -258,7 +272,8 @@ class ResultEncoder(json.JSONEncoder):
 def empty_if_none(x: None|int|float) ->str:
     if x is None:
         return ""
-    else: return "%s" % x
+    else:
+        return "%s" % x
 
 
 def dump_results(solvers_results: dict[str, list[Result]], fname: str):
@@ -266,10 +281,11 @@ def dump_results(solvers_results: dict[str, list[Result]], fname: str):
         f.write(json.dumps(solvers_results, indent=2, cls=ResultEncoder))
     with open("%s.csv" % fname, "w") as f:
         f.write("solver,solc_version,name,result,correct,t,timeout,memMB,exit_status\n")
-        for solver,results in solvers_results.items():
+        for solver, results in solvers_results.items():
             for r in results:
                 corr_as_sqlite = ""
-                if r.result is not None: corr_as_sqlite = (int)(r.result == r.case.expected)
+                if r.result is not None:
+                    corr_as_sqlite = (int)(r.result == r.case.expected)
                 f.write("\"{solver}\",\"{solc_version}\",\"{name}\",\"{result}\",{corr},{t},{timeout},{memMB},{exit_status}\n".format(
                     solver=solver, solc_version=opts.solc_version, name=r.case.get_name(), result=r.result,
                     corr=corr_as_sqlite, t=empty_if_none(r.t),
@@ -316,7 +332,8 @@ def main() -> None:
     build_contracts()
     cases = gather_cases()
     print("cases gathered: ")
-    for c in cases: print("-> %s" % c)
+    for c in cases:
+        print("-> %s" % c)
     random.shuffle(cases)
     solvers_results = run_all_tests(cases[:opts.limit])
     dump_results(solvers_results, "results")

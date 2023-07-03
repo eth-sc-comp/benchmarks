@@ -256,6 +256,7 @@ def run_all_tests(cases: list[Case]) -> dict[str, list[Result]]:
     return results
 
 
+# Encodes the 'Result' class into JSON
 class ResultEncoder(json.JSONEncoder):
     def default(self, obj):
         if isinstance(obj, Result):
@@ -277,6 +278,7 @@ class ResultEncoder(json.JSONEncoder):
         return json.JSONEncoder.default(self, obj)
 
 
+# Returns empty string if value is None. This is converted to NULL in SQLite
 def empty_if_none(x: None|int|float) ->str:
     if x is None:
         return ""
@@ -284,6 +286,8 @@ def empty_if_none(x: None|int|float) ->str:
         return "%s" % x
 
 
+# Dump results in SQLite and CSV, so they can be analyzed via
+# SQL/Libreoffice/commend line
 def dump_results(solvers_results: dict[str, list[Result]], fname: str):
     with open("%s.json" % fname, "w") as f:
         f.write(json.dumps(solvers_results, indent=2, cls=ResultEncoder))
@@ -304,7 +308,8 @@ def dump_results(solvers_results: dict[str, list[Result]], fname: str):
 # --- main ---
 
 
-def set_up_parser():
+# Set up options for main
+def set_up_parser() -> optparse.OptionParser:
     usage = "usage: %prog [options]"
     desc = """Run all benchmarks for all tools
     """

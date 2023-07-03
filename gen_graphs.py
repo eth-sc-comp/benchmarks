@@ -128,10 +128,12 @@ def gen_comparative_graphs() ->list[tuple[str, str, int]]:
             os.system("gnuplot "+fname_gnuplot)
             os.unlink(fname_gnuplot)
             os.unlink(fname_gnuplot_data)
-            print("okular %s" % fname_eps)
+            print("graph generated: %s" % fname_eps)
     return ret
 
 
+# Generates  a Cumulative Distribution Function (CDF) from the data
+# See: https://online.stat.psu.edu/stat414/lesson/14/14.2
 def gen_cdf_graph():
     cdf_files = gen_cdf_files()
     fname_gnuplot = "cdf.gnuplot"
@@ -158,12 +160,13 @@ def gen_cdf_graph():
     for fname, _, _ in cdf_files:
         os.unlink(fname)
 
-    print("okular cdf.eps")
+    print("graph generated: cdf.eps")
 
 
-def main():
+def main() -> None:
     gen_cdf_graph()
     gen_comparative_graphs()
+    # TODO other functions
 
 
 if __name__ == "__main__":

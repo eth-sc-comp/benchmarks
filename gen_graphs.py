@@ -65,8 +65,8 @@ def get_solvers() -> list[str]:
 def gen_cdf_files() ->list[tuple[str, str, int]]:
     ret = []
     solvers = get_solvers()
+    print("Solvers: ", solvers)
     for solver in solvers:
-        print("solver:", solver)
         fname = "graphs/run-"+solver+".csv"
         with open("gencsv.sqlite", "w") as f:
             f.write(".headers off\n")
@@ -81,7 +81,8 @@ def gen_cdf_files() ->list[tuple[str, str, int]]:
         ret.append([fname2, solver, num_solved])
     return ret
 
-
+# Generates graphs with 2 solvers on X/Y axis and the dots representing problems that were solved
+# by the different solvers.
 def gen_comparative_graphs() ->list[tuple[str, str, int]]:
     ret = []
     solvers = get_solvers()
@@ -94,16 +95,16 @@ def gen_comparative_graphs() ->list[tuple[str, str, int]]:
                 f.write(".headers off\n")
                 f.write(".mode csv\n");
                 f.write(".output "+fname+"\n")
+                # We need to make sure if something is unsolved by a solver, it shows up at the top/rightmost point
                 f.write("select (case when a.result=='unknown' then a.tout else a.t end),(case when b.result=='unknown' then b.tout else b.t end),a.tout from results as a, results as b where a.solver='"+solver+"' and b.solver='"+solver2+"' and a.name=b.name")
             os.system("sqlite3 results.db < gencsv.sqlite")
-            fname2 = fname + ".gnuplotdata"
-            convert_to_tout(fname, fname2)
+            fname_gnuplot_data = fname + ".gnuplotdata"
+            convert_to_tout(fname, fname_gnuplot_data)
             os.unlink(fname)
 
-            # create graph
-            gnuplotfn = "run-one.gnuplot"
+            gnuplot_fname = "compare.gnuplot"
             outfname = solver+"-vs-"+solver2+".eps"
-            with open(gnuplotfn, "w") as f:
+            with open(gnuplot_fname, "w") as f:
                 f.write("set term postscript eps color lw 1 \"Helvetica\" 8 size 6,4\n")
                 f.write("set output \""+outfname+"\"\n")
                 f.write("set notitle\n")
@@ -114,20 +115,20 @@ def gen_comparative_graphs() ->list[tuple[str, str, int]]:
                 f.write("set ylabel  \""+solver2+"\"\n")
                 f.write("f(x) = x\n")
                 f.write("plot[0.001:] \\\n")
-                f.write("\""+fname2+"\" u 1:2 with points\\\n")
+                f.write("\""+fname_gnuplot_data+"\" u 1:2 with points\\\n")
                 f.write(",f(x) with lines ls 2 title \"y=x\"\n")
 
-            os.system("gnuplot "+gnuplotfn)
-            os.unlink(gnuplotfn)
-            os.unlink(fname2)
+            os.system("gnuplot "+gnuplot_fname)
+            os.unlink(gnuplot_fname)
+            os.unlink(fname_gnuplot_data)
             print("okular %s" % outfname)
     return ret
 
 
 def gen_cdf_graph():
     files = gen_cdf_files()
-    gnuplotfn = "run-all.gnuplot"
-    with open(gnuplotfn, "w") as f:
+    gnuplot_fname = "cdf.gnuplot"
+    with open(gnuplot_fname, "w") as f:
         f.write("set term postscript eps color lw 1 \"Helvetica\" 8 size 4,4\n")
         f.write("set output \"cdf.eps\"\n")
         f.write("set title \"Solvers\"\n")
@@ -145,8 +146,8 @@ def gen_cdf_graph():
         towrite = towrite[:(len(towrite)-4)]
         f.write(towrite)
 
-    os.system("gnuplot "+gnuplotfn)
-    os.unlink(gnuplotfn)
+    os.system("gnuplot "+gnuplot_fname)
+    os.unlink(gnuplot_fname)
     for fname,_,_ in files:
         os.unlink(fname)
 

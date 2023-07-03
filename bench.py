@@ -20,6 +20,7 @@ def printable_output(out):
     return ("%s" % out).replace('\\n', '\n').replace('\\t', '\t')
 
 
+# uses forge build to build contracts
 def build_contracts() -> None:
     ret = subprocess.run(["forge", "build", "--use", opts.solc_version], capture_output=True)
     if ret.returncode != 0:
@@ -30,13 +31,14 @@ def build_contracts() -> None:
     ret.check_returncode()
 
 
+# get all functions that start with 'prove'
 def get_prove_funcs(js) -> list[str]:
     ret = []
     for i in range(len(js["abi"])):
         if "name" not in js["abi"][i]:
             continue
         fun = js["abi"][i]["name"]
-        if "prove" in fun:
+        if re.match("^prove", fun):
             ret.append(fun)
 
     return ret

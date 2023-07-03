@@ -66,6 +66,7 @@ def determine_expected(sol_file: str) -> Literal["safe"] | Literal["unsafe"]:
         )
 
 
+# A case to solve by the solvers
 class Case:
     def __init__(self, contract: str, json_fname: str, sol_file: str, ds: bool, fun: str):
         self.contract = contract
@@ -123,6 +124,7 @@ def gather_cases() -> list[Case]:
     return cases
 
 
+# Generates a unique temporary file. Can be run multi-threaded
 def unique_file(fname_begin, fname_end=".out"):
         counter = 1
         while 1:
@@ -151,6 +153,7 @@ def last_line_in_file(fname: str) -> str:
         return last_line
 
 
+# Result from a solver
 class Result:
     def __init__(self, result: str, mem_used_MB: float|None, exit_status: int|None,
                  perc_CPU: int|None, t: float|None, tout: float|None, case: Case):
@@ -164,16 +167,16 @@ class Result:
 
 
 # executes the given tool script against the given test case and returns the
-# time taken and the reported result
+# result
 def execute_case(tool: str, case: Case) -> Result:
     time_taken = None
     result = None
     res = None
     before = time.time_ns()
-    tmp_f = unique_file("output")
-    tmp_f2 = unique_file("output")
-    toexec = ["/usr/bin/time", "--verbose", "-o", "%s" % tmp_f2, "./runlim/runlim",
-              "--real-time-limit=%s" % opts.timeout, "--output-file=%s" % tmp_f,
+    fname_runlim = unique_file("output")
+    fname_time = unique_file("output")
+    toexec = ["/usr/bin/time", "--verbose", "-o", "%s" % fname_time, "./runlim/runlim",
+              "--real-time-limit=%s" % opts.timeout, "--output-file=%s" % fname_runlim,
               "--kill-delay=10",
               tool, case.sol_file, case.contract, case.fun, "%i" % case.ds]
     print("Running: %s" % (" ".join(toexec)))
@@ -183,7 +186,9 @@ def execute_case(tool: str, case: Case) -> Result:
     mem_used_MB = None
     exit_status = None
     perc_CPU = None
-    with open(tmp_f, 'r') as f:
+
+    # parse runlim output
+    with open(fname_runlim, 'r') as f:
         for l in f:
             # if opts.verbose: print("runlim output line: ", l.strip())
             if re.match("^.runlim. status:.*out of time", l): out_of_time = True
@@ -199,7 +204,8 @@ def execute_case(tool: str, case: Case) -> Result:
     if out_of_time or result is None:
         result = "unknown"
 
-    with open(tmp_f2, 'r') as f:
+    # parse `time --verbose` output
+    with open(fname_time, 'r') as f:
         for l in f:
             l = l.strip()
             match = re.match(r"Maximum resident set size .kbytes.: (.*)", l)
@@ -215,8 +221,8 @@ def execute_case(tool: str, case: Case) -> Result:
                 exit_status = int(match.group(1))
 
     assert result == "safe" or result == "unsafe" or result == "unknown"
-    os.unlink(tmp_f)
-    os.unlink(tmp_f2)
+    os.unlink(fname_runlim)
+    os.unlink(fname_time)
     if opts.verbose:
         print("Result is: ", result)
 

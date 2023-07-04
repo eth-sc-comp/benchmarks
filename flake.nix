@@ -13,12 +13,25 @@
       url = "github:a16z/halmos";
       flake = false;
     };
+    runlim-src = {
+      url = "github:msooseth/runlim";
+      flake = false;
+    };
   };
 
-  outputs = { self, nixpkgs, flake-utils, kevm, hevm, foundry, echidna, halmos-src }:
+  outputs = { self, nixpkgs, flake-utils, kevm, hevm, foundry, echidna, halmos-src, runlim-src }:
     flake-utils.lib.eachDefaultSystem (system:
       let
         pkgs = nixpkgs.legacyPackages.${system};
+        runlim = pkgs.stdenv.mkDerivation {
+          pname = "runlim";
+          version = "1.0";
+          configurePhase = ''
+            mkdir -p $out/bin
+            ./configure.sh --prefix=$out/bin
+          '';
+          src = runlim-src;
+        };
         halmos = pkgs.python3.pkgs.buildPythonApplication rec {
           pname = "halmos";
           version = "0.0.0";
@@ -52,6 +65,7 @@
             pkgs.jq
             pkgs.sqlite
             pkgs.gnuplot
+            runlim
           ];
         };
       });

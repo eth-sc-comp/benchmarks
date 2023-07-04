@@ -164,6 +164,10 @@ def gen_cdf_graph():
 
 
 def main() -> None:
+    try:
+        os.mkdir("graphs")
+    except FileExistsError:
+        pass
     gen_cdf_graph()
     gen_comparative_graphs()
     # TODO other functions

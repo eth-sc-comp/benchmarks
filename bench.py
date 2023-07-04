@@ -116,7 +116,8 @@ def gather_cases() -> list[Case]:
             with open(json_fname) as oj:
                 js = json.load(oj)
                 sol_file: str = js["ast"]["absolutePath"]
-                if sol_file.startswith("lib/"): continue
+                if sol_file.startswith("lib/"):
+                    continue
                 ds_test = determine_dstest(sol_file)
                 if ds_test:
                     for f in get_prove_funcs(js):
@@ -193,7 +194,8 @@ def execute_case(tool: str, case: Case) -> Result:
     with open(fname_runlim, 'r') as f:
         for l in f:
             # if opts.verbose: print("runlim output line: ", l.strip())
-            if re.match("^.runlim. status:.*out of time", l): out_of_time = True
+            if re.match("^.runlim. status:.*out of time", l):
+                out_of_time = True
     if opts.verbose:
             print("Res stdout is:", res.stdout)
             print("Res stderr is:", res.stderr)

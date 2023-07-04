@@ -6,3 +6,4 @@ out/
 *.csv
 tags
 *.eps
+*.db

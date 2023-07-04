@@ -50,6 +50,8 @@
 
             # shell script deps
             pkgs.jq
+            pkgs.sqlite
+            pkgs.gnuplot
           ];
         };
       });

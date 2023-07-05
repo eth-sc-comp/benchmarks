@@ -282,7 +282,7 @@ class ResultEncoder(json.JSONEncoder):
 
 
 # Returns empty string if value is None. This is converted to NULL in SQLite
-def empty_if_none(x: None|int|float) ->str:
+def empty_if_none(x: None|int|float) -> str:
     if x is None:
         return ""
     else:

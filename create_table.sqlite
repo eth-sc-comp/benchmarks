@@ -1,4 +1,4 @@
-CREATE TABLE results IF NOT EXISTS (
+CREATE TABLE IF NOT EXISTS results (
   solver STRING NOT NULL,
   solc_version STRING NOT NULL,
   name STRING NOT NULL,

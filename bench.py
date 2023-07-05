@@ -179,7 +179,7 @@ def execute_case(tool: str, case: Case) -> Result:
     before = time.time_ns()
     fname_runlim = unique_file("output")
     fname_time = unique_file("output")
-    toexec = ["/usr/bin/time", "--verbose", "-o", "%s" % fname_time, "./runlim/runlim",
+    toexec = ["/usr/bin/time", "--verbose", "-o", "%s" % fname_time, "runlim",
               "--real-time-limit=%s" % opts.timeout, "--output-file=%s" % fname_runlim,
               "--kill-delay=10",
               tool, case.sol_file, case.contract, case.fun, "%i" % case.ds]
@@ -353,10 +353,10 @@ def main() -> None:
         print("-> %s" % c)
     random.shuffle(cases)
     solvers_results = run_all_tests(cases[:opts.limit])
-    results_fname = "results-%s" % opts.timestamp
+    results_fname = "results-tstamp-%s" % opts.timestamp
     dump_results(solvers_results, results_fname)
     os.system("sqlite3 results.db < create_table.sqlite")
-    os.system("sqlite3 results.db \". mode csv\" \". import -skip 1 %s results\" \".exit\" " % results_fname)
+    os.system("sqlite3 results.db \". mode csv\" \". import -skip 1 %s.csv results\" \".exit\" " % results_fname)
     os.system("sqlite3 results.db < clean_table.sqlite")
 
 if __name__ == "__main__":

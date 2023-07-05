@@ -179,7 +179,7 @@ def execute_case(tool: str, case: Case) -> Result:
     before = time.time_ns()
     fname_runlim = unique_file("output")
     fname_time = unique_file("output")
-    toexec = ["/usr/bin/time", "--verbose", "-o", "%s" % fname_time, "runlim",
+    toexec = ["time", "--verbose", "-o", "%s" % fname_time, "runlim",
               "--real-time-limit=%s" % opts.timeout, "--output-file=%s" % fname_runlim,
               "--kill-delay=10",
               tool, case.sol_file, case.contract, case.fun, "%i" % case.ds]

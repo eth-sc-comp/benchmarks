@@ -65,6 +65,7 @@
             pkgs.jq
             pkgs.sqlite
             pkgs.gnuplot
+            pkgs.time
             runlim
           ];
         };

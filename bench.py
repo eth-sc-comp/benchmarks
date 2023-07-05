@@ -345,7 +345,7 @@ def main() -> None:
         exit(-1)
 
     random.seed(opts.seed)
-    opts.timestamp = strftime("%Y-%m-%d-t-%H:%M", gmtime())
+    opts.timestamp = strftime("%Y-%m-%d-%H:%M", gmtime())
     build_contracts()
     cases = gather_cases()
     print("cases gathered: ")

@@ -10,6 +10,7 @@ import re
 import random
 from typing import Literal
 import optparse
+from time import gmtime, strftime
 
 tools = {"hevm": ["tools/hevm.sh", "tools/hevm_version.sh"]}
 global opts
@@ -254,7 +255,7 @@ def run_all_tests(cases: list[Case]) -> dict[str, list[Result]]:
         res = []
         for c in cases:
             res.append(execute_case(script[0], c))
-        results["%s-%s" % (tool, version)] = res
+        results["%s-%s-tstamp-%s" % (tool, version, opts.timestamp)] = res
     return results
 
 
@@ -344,6 +345,7 @@ def main() -> None:
         exit(-1)
 
     random.seed(opts.seed)
+    opts.timestamp = strftime("%Y-%m-%d-t-%H:%M", gmtime())
     build_contracts()
     cases = gather_cases()
     print("cases gathered: ")
@@ -351,9 +353,11 @@ def main() -> None:
         print("-> %s" % c)
     random.shuffle(cases)
     solvers_results = run_all_tests(cases[:opts.limit])
-    dump_results(solvers_results, "results")
-    os.system("sqlite3 results.db < results.sqlite")
-
+    results_fname = "results-%s" % opts.timestamp
+    dump_results(solvers_results, results_fname)
+    os.system("sqlite3 results.db < create_table.sqlite")
+    os.system("sqlite3 results.db \". mode csv\" \". import -skip 1 %s results\" \".exit\" " % results_fname)
+    os.system("sqlite3 results.db < clean_table.sqlite")
 
 if __name__ == "__main__":
     main()

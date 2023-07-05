@@ -98,13 +98,15 @@ def gen_comparative_graphs() ->list[tuple[str, str, int]]:
                 continue
             # create data file
             fname = "graphs/compare-"+solver+"-"+solver2+".csv"
-            with open("gencsv.sqlite", "w") as f:
+            fname_sqlite = "gencsv.sqlite"
+            with open(fname_sqlite, "w") as f:
                 f.write(".headers off\n")
                 f.write(".mode csv\n")
                 f.write(".output "+fname+"\n")
                 # We need to make sure if something is unsolved by a solver, it shows up at the top/rightmost point
                 f.write("select (case when a.result=='unknown' then a.tout else a.t end),(case when b.result=='unknown' then b.tout else b.t end),a.tout from results as a, results as b where a.solver='"+solver+"' and b.solver='"+solver2+"' and a.name=b.name")
-            os.system("sqlite3 results.db < gencsv.sqlite")
+            os.system("sqlite3 results.db < %s" % fname_sqlite)
+            os.unlink(fname_sqlite)
             fname_gnuplot_data = fname + ".gnuplotdata"
             convert_to_tout(fname, fname_gnuplot_data)
             os.unlink(fname)

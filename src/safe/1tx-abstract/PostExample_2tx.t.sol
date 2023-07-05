@@ -2,7 +2,7 @@
 pragma solidity ^0.8.13;
 
 import "forge-std/Test.sol";
-import "lib/PostExample_2tx.sol";
+import "src/common/PostExample_2tx.sol";
 
 contract PostExampleTwoTest is Test {
     PostExample public example;

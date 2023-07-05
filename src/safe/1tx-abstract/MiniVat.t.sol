@@ -2,7 +2,7 @@
 pragma solidity ^0.8.13;
 
 import "forge-std/Test.sol";
-import "lib/MiniVat.sol";
+import "src/common/MiniVat.sol";
 
 contract MiniVatTest is Test {
     MiniVat public vat;

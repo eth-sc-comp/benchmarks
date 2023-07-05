@@ -1,7 +1,7 @@
 pragma solidity ^0.8.19;
 
 import "ds-test/test.sol";
-import "lib/erc20.sol";
+import "src/common/erc20.sol";
 
 contract ConstructorArg {
     address immutable public a;

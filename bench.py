@@ -344,6 +344,12 @@ def main() -> None:
         print("Benchmarking does not accept arguments")
         exit(-1)
 
+
+    try:
+        os.mkdir("out")
+    except FileExistsError:
+        pass
+
     random.seed(opts.seed)
     opts.timestamp = strftime("%Y-%m-%d-%H:%M", gmtime())
     build_contracts()

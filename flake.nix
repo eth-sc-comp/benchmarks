@@ -55,6 +55,7 @@
             kevm.packages.${system}.default
             echidna.packages.${system}.default
             foundry.defaultPackage.${system}
+            pkgs.solc
 
             # python stuff
             pkgs.black

@@ -399,9 +399,9 @@ def main() -> None:
     os.system("cp %s.json results-latest.csv" % results_fname)
     print("Generated file %s.csv" % results_fname)
     print("Generated file %s.json" % results_fname)
-    os.system("sqlite3 results.db < create_table.sqlite")
+    os.system("sqlite3 results.db < create_table.sql")
     os.system("sqlite3 results.db \". mode csv\" \". import -skip 1 %s.csv results\" \".exit\" " % results_fname)
-    os.system("sqlite3 results.db < clean_table.sqlite")
+    os.system("sqlite3 results.db < clean_table.sql")
 
 if __name__ == "__main__":
     main()

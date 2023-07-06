@@ -13,21 +13,53 @@ import optparse
 from time import gmtime, strftime
 from crytic_compile import CryticCompile, InvalidCompilation
 
-tools : dict[str, dict[str, str|list[str]]] = {
+
+def recreate_out() -> None:
+    os.system("rm -rf out")
+    try:
+        os.mkdir("out")
+    except FileExistsError:
+        pass
+
+
+def build_forge() -> None:
+    print("Building with forge...")
+    recreate_out()
+    ret = subprocess.run(["forge", "build", "--use", opts.solc_version], capture_output=True)
+    if ret.returncode != 0:
+        print("Forge returned error(s)")
+        print(printable_output(ret.stderr))
+        exit(-1)
+    ret.check_returncode()
+
+def build_crytic() -> None:
+    print("Building with crytic...")
+    recreate_out()
+    try:
+        pwd = os.getcwd()
+        CryticCompile(target=pwd)
+    except InvalidCompilation as e:
+        print(f'Parse error: {e}')
+        exit(-1)
+
+tools = {
     "hevm-cvc5": {
         "call": "tools/hevm.sh",
         "version": "tools/hevm_version.sh",
-        "extra_opts": ["--solver", "cvc5"]
+        "extra_opts": ["--solver", "cvc5"],
+        "build": build_forge
     },
     "hevm-z3": {
         "call": "tools/hevm.sh",
         "version": "tools/hevm_version.sh",
-        "extra_opts": ["--solver","z3"]
+        "extra_opts": ["--solver","z3"],
+        "build": build_forge
     },
     "halmos": {
         "call": "tools/halmos.sh",
-        "verson": "tools/halmos_version.sh",
+        "version": "tools/halmos_version.sh",
         "extra_opts": [],
+        "build": build_crytic
     }
 }
 global opts
@@ -36,24 +68,6 @@ global opts
 # make output printable to console by replacing special characters
 def printable_output(out):
     return ("%s" % out).replace('\\n', '\n').replace('\\t', '\t')
-
-
-def build_contracts() -> None:
-    # forge
-    ret = subprocess.run(["forge", "build", "--use", opts.solc_version], capture_output=True)
-    if ret.returncode != 0:
-        print("Forge returned error(s)")
-        print(printable_output(ret.stderr))
-        exit(-1)
-    ret.check_returncode()
-
-    # crytic
-    try:
-        pwd = os.getcwd()
-        # cryticCompile = CryticCompile(target=pwd)
-    except InvalidCompilation as e:
-        print(f'Parse error: {e}')
-        exit(-1)
 
 
 # get all functions that start with 'prove'
@@ -125,6 +139,7 @@ class Case:
 # solidity code to handle the case where a single solidity file contains
 # multiple contracts
 def gather_cases() -> list[Case]:
+    build_forge()
     # build a dictionary where the key is a directory in the foundry build
     # output, and the value is a list of contract names defined within
     output_jsons = {
@@ -276,6 +291,7 @@ def get_version(script: str) -> str:
 def run_all_tests(cases: list[Case]) -> dict[str, list[Result]]:
     results: dict[str, list[Result]] = {}
     for tool, descr in tools.items():
+        descr["build"]()
         version = get_version(descr["version"])
         res = []
         for c in cases:
@@ -369,16 +385,8 @@ def main() -> None:
     if len(args) > 0:
         print("Benchmarking does not accept arguments")
         exit(-1)
-
-
-    try:
-        os.mkdir("out")
-    except FileExistsError:
-        pass
-
     random.seed(opts.seed)
     opts.timestamp = strftime("%Y-%m-%d-%H:%M", gmtime())
-    build_contracts()
     cases = gather_cases()
     print("cases gathered: ")
     for c in cases:

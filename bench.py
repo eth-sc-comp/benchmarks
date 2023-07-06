@@ -11,6 +11,7 @@ import random
 from typing import Literal
 import optparse
 from time import gmtime, strftime
+from crytic_compile import CryticCompile, InvalidCompilation
 
 tools = {"hevm": ["tools/hevm.sh", "tools/hevm_version.sh"]}
 global opts
@@ -21,15 +22,22 @@ def printable_output(out):
     return ("%s" % out).replace('\\n', '\n').replace('\\t', '\t')
 
 
-# uses forge build to build contracts
 def build_contracts() -> None:
+    # forge
     ret = subprocess.run(["forge", "build", "--use", opts.solc_version], capture_output=True)
     if ret.returncode != 0:
         print("Forge returned error(s)")
         print(printable_output(ret.stderr))
         exit(-1)
-
     ret.check_returncode()
+
+    # crytic
+    try:
+        pwd = os.getcwd()
+        # cryticCompile = CryticCompile(target=pwd)
+    except InvalidCompilation as e:
+        print(f'Parse error: {e}')
+        exit(-1)
 
 
 # get all functions that start with 'prove'
@@ -114,10 +122,12 @@ def gather_cases() -> list[Case]:
     for out_dir, contracts in output_jsons.items():
         for c in contracts:
             json_fname = f"{out_dir}/{c}.json"
+            if json_fname.startswith("out/build-info"):
+                continue
             with open(json_fname) as oj:
                 js = json.load(oj)
                 sol_file: str = js["ast"]["absolutePath"]
-                if sol_file.startswith("lib/"):
+                if sol_file.startswith("src/common/") or sol_file.startswith("lib/"):
                     continue
                 ds_test = determine_dstest(sol_file)
                 if ds_test:
@@ -318,7 +328,7 @@ def set_up_parser() -> optparse.OptionParser:
     """
 
     parser = optparse.OptionParser(usage=usage, description=desc)
-    parser.add_option("--verb", "-v", action="store_true", default=False,
+    parser.add_option("--verbose", "-v", action="store_true", default=False,
                       dest="verbose", help="More verbose output. Default: %default")
 
     parser.add_option("-s", dest="seed", type=int, default=1,
@@ -361,6 +371,10 @@ def main() -> None:
     solvers_results = run_all_tests(cases[:opts.limit])
     results_fname = "results-tstamp-%s" % opts.timestamp
     dump_results(solvers_results, results_fname)
+    os.system("cp %s.csv results-latest.csv" % results_fname)
+    os.system("cp %s.json results-latest.csv" % results_fname)
+    print("Generated file %s.csv" % results_fname)
+    print("Generated file %s.json" % results_fname)
     os.system("sqlite3 results.db < create_table.sqlite")
     os.system("sqlite3 results.db \". mode csv\" \". import -skip 1 %s.csv results\" \".exit\" " % results_fname)
     os.system("sqlite3 results.db < clean_table.sqlite")

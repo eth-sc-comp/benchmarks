@@ -13,7 +13,23 @@ import optparse
 from time import gmtime, strftime
 from crytic_compile import CryticCompile, InvalidCompilation
 
-tools = {"hevm": ["tools/hevm.sh", "tools/hevm_version.sh"]}
+tools : dict[str, dict[str, str|list[str]]] = {
+    "hevm-cvc5": {
+        "call": "tools/hevm.sh",
+        "version": "tools/hevm_version.sh",
+        "extra_opts": ["--solver", "cvc5"]
+    },
+    "hevm-z3": {
+        "call": "tools/hevm.sh",
+        "version": "tools/hevm_version.sh",
+        "extra_opts": ["--solver","z3"]
+    },
+    "halmos": {
+        "call": "tools/halmos.sh",
+        "verson": "tools/halmos_version.sh",
+        "extra_opts": [],
+    }
+}
 global opts
 
 
@@ -182,7 +198,7 @@ class Result:
 
 # executes the given tool script against the given test case and returns the
 # result
-def execute_case(tool: str, case: Case) -> Result:
+def execute_case(tool: str, extra_opts: list[str], case: Case) -> Result:
     time_taken = None
     result = None
     res = None
@@ -193,6 +209,7 @@ def execute_case(tool: str, case: Case) -> Result:
               "--real-time-limit=%s" % opts.timeout, "--output-file=%s" % fname_runlim,
               "--kill-delay=10",
               tool, case.sol_file, case.contract, case.fun, "%i" % case.ds]
+    toexec.extend(extra_opts)
     print("Running: %s" % (" ".join(toexec)))
     res = subprocess.run(toexec, capture_output=True, encoding="utf-8")
     after = time.time_ns()
@@ -257,15 +274,14 @@ def get_version(script: str) -> str:
 # executes all tests contained in the argument cases mapping with all tools and
 # builds the result dict
 def run_all_tests(cases: list[Case]) -> dict[str, list[Result]]:
-    # execute each tool on each testcase and write the execution times to a
-    # dictionary (tool -> file -> contract -> (expected, result, time_taken))
     results: dict[str, list[Result]] = {}
-    for tool, script in tools.items():
-        version = get_version(script[1])
+    for tool, descr in tools.items():
+        version = get_version(descr["version"])
         res = []
         for c in cases:
-            res.append(execute_case(script[0], c))
-        results["%s-%s-tstamp-%s" % (tool, version, opts.timestamp)] = res
+            res.append(execute_case(descr["call"], descr["extra_opts"], c))
+        name = "%s-%s-tstamp-%s" % (tool, version, opts.timestamp)
+        results[name] = res
     return results
 
 

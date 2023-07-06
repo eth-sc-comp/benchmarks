@@ -12,9 +12,9 @@ source "$SCRIPT_DIR/utils.sh"
 
 if [[ "${ds_test}" == "0" ]]; then
     code=$(get_runtime_bytecode "${contract_file}" "${contract_name}")
-    out=$(hevm symbolic --code "$code" 2>& 1)
+    out=$(hevm symbolic --code "${code}" "$@" 2>& 1)
 elif [[ "${ds_test}" == "1" ]]; then
-    out=$(hevm test --match "${contract_file}.*${fun_name}")
+    out=$(hevm test --match "${contract_file}.*${fun_name}" "$@" 2&> 1)
 else
     echo "Called incorrectly"
     exit 1

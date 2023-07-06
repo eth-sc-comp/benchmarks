@@ -32,27 +32,6 @@ def convert_to_cdf(fname: str, fname2: str) -> int:
     return len(mylines)
 
 
-# convert `T1, T2, TOUT` by making T1&T2 into TOUT in case they are empty
-def convert_to_tout(fname_in: str, fname_out: str):
-    f_in = open(fname_in, "r")
-    f_out = open(fname_out, "w")
-    for line in f_in:
-        out: list[float] = []
-        line = line.strip().split(",")
-        tout = float(line[2])
-        if line[0].strip() == "":
-            out.append(tout)
-        else:
-            out.append(min(float(line[0]), tout))
-        if line[1].strip() == "":
-            out.append(tout)
-        else:
-            out.append(min(float(line[1]), tout))
-        f_out.write("%s %s\n" % (out[0], out[1]))
-    f_in.close()
-    f_out.close()
-
-
 # Get all solvers in the DB
 def get_solvers() -> list[str]:
     ret = []
@@ -94,22 +73,25 @@ def gen_comparative_graphs() ->list[tuple[str, str, int]]:
     solvers = get_solvers()
     for solver in solvers:
         for solver2 in solvers:
-            if solver2 == solver:
+            if solver2 <= solver:
                 continue
             # create data file
-            fname = "graphs/compare-"+solver+"-"+solver2+".csv"
-            fname_sqlite = "gencsv.sqlite"
-            with open(fname_sqlite, "w") as f:
-                f.write(".headers off\n")
-                f.write(".mode csv\n")
-                f.write(".output "+fname+"\n")
-                # We need to make sure if something is unsolved by a solver, it shows up at the top/rightmost point
-                f.write("select (case when a.result=='unknown' then a.tout else a.t end),(case when b.result=='unknown' then b.tout else b.t end),a.tout from results as a, results as b where a.solver='"+solver+"' and b.solver='"+solver2+"' and a.name=b.name")
-            os.system("sqlite3 results.db < %s" % fname_sqlite)
-            os.unlink(fname_sqlite)
-            fname_gnuplot_data = fname + ".gnuplotdata"
-            convert_to_tout(fname, fname_gnuplot_data)
-            os.unlink(fname)
+            with sqlite3.connect("results.db") as cur:
+                ret = cur.execute("""
+                select
+                    (case when a.result=='unknown' then a.tout else a.t end),
+                    (case when b.result=='unknown' then b.tout else b.t end),
+                    a.name
+                from results as a, results as b
+                where
+                    a.solver='%s' and b.solver='%s' and a.name=b.name""" % (solver, solver2))
+                fname_gnuplot_data = "graphs/compare-"+solver+"-"+solver2+".gnuplotdata"
+                with open(fname_gnuplot_data, "w") as f:
+                    for l in ret:
+                        solver1_t = l[0]
+                        solver2_t = l[1]
+                        name = l[2]
+                        f.write("%f %f %s\n" % (solver1_t, solver2_t, name))
 
             fname_gnuplot = "compare.gnuplot"
             fname_eps = solver+"-vs-"+solver2+".eps"

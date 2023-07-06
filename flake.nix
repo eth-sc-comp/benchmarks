@@ -60,7 +60,7 @@
             # python stuff
             pkgs.black
             pkgs.ruff
-            (pkgs.python3.withPackages(ps : with ps; [crytic-compile]))
+            (pkgs.python3.withPackages(ps : with ps; [crytic-compile, sqlite3]))
 
             # shell script deps
             pkgs.jq

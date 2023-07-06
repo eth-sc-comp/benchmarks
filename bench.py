@@ -11,6 +11,7 @@ import random
 from typing import Literal
 import optparse
 from time import gmtime, strftime
+import csv
 from crytic_compile import CryticCompile, InvalidCompilation
 
 
@@ -201,7 +202,7 @@ def last_line_in_file(fname: str) -> str:
 # Result from a solver
 class Result:
     def __init__(self, result: str, mem_used_MB: float|None, exit_status: int|None,
-                 perc_CPU: int|None, t: float|None, tout: float|None, case: Case):
+                 perc_CPU: int|None, t: float|None, tout: float|None, case: Case, out:str):
         self.result = result
         self.exit_status = exit_status
         self.mem_used_MB = mem_used_MB
@@ -209,6 +210,7 @@ class Result:
         self.t = t
         self.tout = tout
         self.case = case
+        self.out = out
 
 
 # executes the given tool script against the given test case and returns the
@@ -275,7 +277,7 @@ def execute_case(tool: str, extra_opts: list[str], case: Case) -> Result:
 
     return Result(result=result, mem_used_MB=mem_used_MB,
                   perc_CPU=perc_CPU, exit_status=exit_status,
-                  t=time_taken, tout=opts.timeout, case=case)
+                  t=time_taken, tout=opts.timeout, case=case, out=res.stderr)
 
 
 def get_version(script: str) -> str:
@@ -319,7 +321,8 @@ class ResultEncoder(json.JSONEncoder):
                 "t": obj.t,
                 "tout": obj.tout,
                 "memMB": obj.mem_used_MB,
-                "exit_status": obj.exit_status}
+                "exit_status": obj.exit_status,
+                "out": obj.out}
         return json.JSONEncoder.default(self, obj)
 
 
@@ -336,18 +339,22 @@ def empty_if_none(x: None|int|float) -> str:
 def dump_results(solvers_results: dict[str, list[Result]], fname: str):
     with open("%s.json" % fname, "w") as f:
         f.write(json.dumps(solvers_results, indent=2, cls=ResultEncoder))
-    with open("%s.csv" % fname, "w") as f:
-        f.write("solver,solc_version,name,result,correct,t,timeout,memMB,exit_status\n")
+    with open("%s.csv" % fname, "w", newline='') as f:
+        # csvwriter = csv.writer(f, delimiter=' ', quotechar='|', quoting=csv.QUOTE_MINIMAL)
+        fieldnames = ["solver", "solc_version", "name", "result", "correct", "t", "timeout", "memMB", "exit_status", "output"]
+        writer = csv.DictWriter(f, fieldnames=fieldnames)
+        writer.writeheader()
         for solver, results in solvers_results.items():
             for r in results:
                 corr_as_sqlite = ""
                 if r.result is not None:
                     corr_as_sqlite = (int)(r.result == r.case.expected)
-                f.write("\"{solver}\",\"{solc_version}\",\"{name}\",\"{result}\",{corr},{t},{timeout},{memMB},{exit_status}\n".format(
-                    solver=solver, solc_version=opts.solc_version, name=r.case.get_name(), result=r.result,
-                    corr=corr_as_sqlite, t=empty_if_none(r.t),
-                    timeout=r.tout, memMB=empty_if_none(r.mem_used_MB),
-                    exit_status=empty_if_none(r.exit_status)))
+                writer.writerow({
+                    "solver": solver, "solc_version": opts.solc_version,
+                    "name": r.case.get_name(), "result": r.result,
+                    "correct": corr_as_sqlite, "t": empty_if_none(r.t),
+                    "timeout": r.tout, "memMB": empty_if_none(r.mem_used_MB),
+                    "exit_status": empty_if_none(r.exit_status), "output": r.out})
 
 
 # --- main ---

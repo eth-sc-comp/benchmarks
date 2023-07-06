@@ -8,5 +8,6 @@ CREATE TABLE IF NOT EXISTS results (
   t FLOAT,
   tout FLOAT,
   memMB FLOAT,
-  exit_status INT
+  exit_status INT,
+  output STRING
 );

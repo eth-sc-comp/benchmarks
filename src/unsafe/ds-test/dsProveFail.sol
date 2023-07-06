@@ -1,8 +1,7 @@
 pragma solidity ^0.8.19;
 
 import "ds-test/test.sol";
-import "src/common/token.sol";
-import "src/common/math.sol";
+import "src/common/erc20.sol";
 
 contract Withdraw {
     receive() external payable {}
@@ -13,17 +12,17 @@ contract Withdraw {
     }
 }
 
-contract SolidityTest is DSTest, DSMath {
-    DSToken token;
+contract SolidityTest is DSTest {
+    ERC20 token;
     Withdraw withdraw;
 
     function setUp() public {
-        token = new DSToken("TKN");
+        token = new ERC20("TKN", "T", 16);
         withdraw = new Withdraw();
     }
 
     function prove_transfer(uint supply, address usr, uint amt) public {
-        token.mint(supply);
+        token.mint(address(this), supply);
 
         uint prebal = token.balanceOf(usr);
         token.transfer(usr, amt);

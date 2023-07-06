@@ -1,8 +1,0 @@
-TODO:
-* run `forge install foundry-rs/forge-std`
-
-Notes:
-* Need graphs via graphivz: CDF, pairwise comparison, etc.
-* Need sqlite
-* Need HTML generated
-* Beware, the timing is almost SURELY wrong. We need to run via `/usr/bin/time --verbose` and we need to be careful about multi-threading

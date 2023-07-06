@@ -44,7 +44,7 @@ def get_solvers() -> list[str]:
 
 
 # generates files for GNU to plot for each solver
-def gen_cdf_files() ->list[tuple[str, str, int]]:
+def gen_cdf_files() -> list[tuple[str, str, int]]:
     ret = []
     solvers = get_solvers()
     print("Solvers: ", solvers)
@@ -68,8 +68,7 @@ def gen_cdf_files() ->list[tuple[str, str, int]]:
 
 # Generates graphs with 2 solvers on X/Y axis and the dots representing problems that were solved
 # by the different solvers.
-def gen_comparative_graphs() ->list[tuple[str, str, int]]:
-    ret = []
+def gen_comparative_graphs() -> None:
     solvers = get_solvers()
     for solver in solvers:
         for solver2 in solvers:
@@ -113,12 +112,11 @@ def gen_comparative_graphs() ->list[tuple[str, str, int]]:
             os.unlink(fname_gnuplot)
             os.unlink(fname_gnuplot_data)
             print("graph generated: %s" % fname_eps)
-    return ret
 
 
 # Generates  a Cumulative Distribution Function (CDF) from the data
 # See: https://online.stat.psu.edu/stat414/lesson/14/14.2
-def gen_cdf_graph():
+def gen_cdf_graph() -> None:
     cdf_files = gen_cdf_files()
     fname_gnuplot = "cdf.gnuplot"
     with open(fname_gnuplot, "w") as f:

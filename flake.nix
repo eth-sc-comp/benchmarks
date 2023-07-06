@@ -60,11 +60,11 @@
             # python stuff
             pkgs.black
             pkgs.ruff
-            (pkgs.python3.withPackages(ps : with ps; [crytic-compile, sqlite3]))
+            (pkgs.python3.withPackages(ps : with ps; [crytic-compile pkgs.sqlite]))
 
             # shell script deps
             pkgs.jq
-            pkgs.sqlite
+            pkgs.sqlite-interactive
             pkgs.gnuplot
             pkgs.time
             runlim

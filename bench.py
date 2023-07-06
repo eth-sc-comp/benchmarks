@@ -396,7 +396,7 @@ def main() -> None:
     results_fname = "results-tstamp-%s" % opts.timestamp
     dump_results(solvers_results, results_fname)
     os.system("cp %s.csv results-latest.csv" % results_fname)
-    os.system("cp %s.json results-latest.csv" % results_fname)
+    os.system("cp %s.json results-latest.json" % results_fname)
     print("Generated file %s.csv" % results_fname)
     print("Generated file %s.json" % results_fname)
     os.system("sqlite3 results.db < create_table.sql")

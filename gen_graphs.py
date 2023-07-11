@@ -69,6 +69,30 @@ def gen_cdf_files() -> list[tuple[str, str, int]]:
 # Generates graphs with 2 solvers on X/Y axis and the dots representing problems that were solved
 # by the different solvers.
 def gen_comparative_graphs() -> None:
+    def genplot(t : str) -> str:
+        fname = solver+"-vs-"+solver2+"." + t
+        with open(fname_gnuplot, "a") as f:
+            if t == "eps":
+                f.write("set term postscript eps color lw 1 \"Helvetica\" 8 size 6,4\n")
+            elif t == "png":
+                f.write("set term png size 600,400\n")
+            else:
+                assert False
+
+            f.write("set output \""+fname+"\"\n")
+            f.write("set notitle\n")
+            f.write("set nokey\n")
+            f.write("set logscale x\n")
+            f.write("set logscale y\n")
+            f.write("set xlabel  \""+solver+"\"\n")
+            f.write("set ylabel  \""+solver2+"\"\n")
+            f.write("f(x) = x\n")
+            f.write("plot[0.001:] \\\n")
+            f.write("\""+fname_gnuplot_data+"\" u 1:2 with points\\\n")
+            f.write(",f(x) with lines ls 2 title \"y=x\"\n")
+            f.write("\n")
+        return fname
+
     solvers = get_solvers()
     for solver in solvers:
         for solver2 in solvers:
@@ -92,26 +116,17 @@ def gen_comparative_graphs() -> None:
                         name = l[2]
                         f.write("%f %f %s\n" % (solver1_t, solver2_t, name))
 
+            # generate plot
             fname_gnuplot = "compare.gnuplot"
-            fname_eps = solver+"-vs-"+solver2+".eps"
-            with open(fname_gnuplot, "w") as f:
-                f.write("set term postscript eps color lw 1 \"Helvetica\" 8 size 6,4\n")
-                f.write("set output \""+fname_eps+"\"\n")
-                f.write("set notitle\n")
-                f.write("set nokey\n")
-                f.write("set logscale x\n")
-                f.write("set logscale y\n")
-                f.write("set xlabel  \""+solver+"\"\n")
-                f.write("set ylabel  \""+solver2+"\"\n")
-                f.write("f(x) = x\n")
-                f.write("plot[0.001:] \\\n")
-                f.write("\""+fname_gnuplot_data+"\" u 1:2 with points\\\n")
-                f.write(",f(x) with lines ls 2 title \"y=x\"\n")
-
+            os.system("rm -f \"%s\"" % fname_gnuplot)
+            for t in ["eps", "png"]:
+                name = genplot(t)
+                print("generating graph: %s" % name)
             os.system("gnuplot "+fname_gnuplot)
             os.unlink(fname_gnuplot)
+
+            # delete data file
             os.unlink(fname_gnuplot_data)
-            print("graph generated: %s" % fname_eps)
 
 
 # Generates  a Cumulative Distribution Function (CDF) from the data
@@ -119,23 +134,32 @@ def gen_comparative_graphs() -> None:
 def gen_cdf_graph() -> None:
     cdf_files = gen_cdf_files()
     fname_gnuplot = "cdf.gnuplot"
-    with open(fname_gnuplot, "w") as f:
-        f.write("set term postscript eps color lw 1 \"Helvetica\" 8 size 4,4\n")
-        f.write("set output \"cdf.eps\"\n")
-        f.write("set title \"Solvers\"\n")
-        f.write("set notitle\n")
-        f.write("set key bottom right\n")
-        f.write("unset logscale x\n")
-        f.write("unset logscale y\n")
-        f.write("set ylabel  \"Problems sovled\"\n")
-        f.write("set xlabel \"Wallclock Time (s)\"\n")
-        f.write("plot \\\n")
-        towrite = ""
-        for fname, solver, _ in cdf_files:
-            towrite += "\""+fname+"\" u 2:1 with linespoints  title \""+solver+"\""
-            towrite += ",\\\n"
-        towrite = towrite[:(len(towrite)-4)]
-        f.write(towrite)
+    os.system("rm -f \"%s\"" % fname_gnuplot)
+    for t in ["eps", "png"]:
+        with open(fname_gnuplot, "a") as f:
+            if t == "eps":
+                f.write("set term postscript eps color lw 1 \"Helvetica\" 8 size 4,4\n")
+            elif t == "png":
+                f.write("set term png size 800,600\n")
+            else:
+                assert False
+
+            f.write("set output \"cdf.%s\"\n" % t)
+            f.write("set title \"Solvers\"\n")
+            f.write("set notitle\n")
+            f.write("set key bottom right\n")
+            f.write("unset logscale x\n")
+            f.write("unset logscale y\n")
+            f.write("set ylabel  \"Problems sovled\"\n")
+            f.write("set xlabel \"Wallclock Time (s)\"\n")
+            f.write("plot \\\n")
+            towrite = ""
+            for fname, solver, _ in cdf_files:
+                towrite += "\""+fname+"\" u 2:1 with linespoints  title \""+solver+"\""
+                towrite += ",\\\n"
+            towrite = towrite[:(len(towrite)-4)]
+            f.write(towrite)
+            f.write("\n")
 
     os.system("gnuplot "+fname_gnuplot)
     os.unlink(fname_gnuplot)
@@ -143,6 +167,7 @@ def gen_cdf_graph() -> None:
         os.unlink(fname)
 
     print("graph generated: cdf.eps")
+    print("graph generated: cdf.png")
 
 
 def main() -> None:

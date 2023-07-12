@@ -2,4 +2,8 @@
 **/.k-artifacts/
 cache/
 out/
-results.json
+*.json
+*.csv
+tags
+*.eps
+*.db

@@ -1664,7 +1664,24 @@
         "halmos-src": "halmos-src",
         "hevm": "hevm",
         "kevm": "kevm",
-        "nixpkgs": "nixpkgs_12"
+        "nixpkgs": "nixpkgs_12",
+        "runlim-src": "runlim-src"
+      }
+    },
+    "runlim-src": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1688487804,
+        "narHash": "sha256-HCaUP71ymtG1sRs6JWWvlJhYKECo/gcj2qBRU31WJxc=",
+        "owner": "msooseth",
+        "repo": "runlim",
+        "rev": "f1b263bc22b6d89e68dbb26bf3ea3508d74154ef",
+        "type": "github"
+      },
+      "original": {
+        "owner": "msooseth",
+        "repo": "runlim",
+        "type": "github"
       }
     },
     "rv-utils": {

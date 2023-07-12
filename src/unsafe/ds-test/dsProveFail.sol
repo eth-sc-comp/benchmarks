@@ -17,7 +17,7 @@ contract SolidityTest is DSTest {
     Withdraw withdraw;
 
     function setUp() public {
-        token = new ERC20("TKN", "T", 16);
+        token = new ERC20("TKN", "T", 18);
         withdraw = new Withdraw();
     }
 

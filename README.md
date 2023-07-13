@@ -26,14 +26,10 @@ database and the csv and json files `results-[timestamp].csv/json`.
 
 To generate graphs, run `python gen_graph.py`. Results. For example, you can
 look at the cumulative distribution function (CDF) graph to get an overview.
-This should look like:
-
-![Cumulative distribution function graph example](example_cdf.png "CDF")
-
-Here, the different tools's performances are displayed, with X axis showing time, and the Y
-axis showing the number of problems solved within that time frame. Typically, a
-tool is be better when it solves more instances (i.e. higher on the Y axis)
-while being faster (i.e. more to the left on the X axis)
+Here, the different tools's performances are displayed, with X axis showing
+time, and the Y axis showing the number of problems solved within that time
+frame. Typically, a tool is be better when it solves more instances (i.e.
+higher on the Y axis) while being faster (i.e. more to the left on the X axis)
 
 The system also generates one-on-one comparisons for all tested tools, and
 a box chart of all tools' performance on all instances.

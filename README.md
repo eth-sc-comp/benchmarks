@@ -1,4 +1,4 @@
-# Ethereum Smart Contract Benchmarks
+# Ethereum Smart Contract Symbolic Execution Benchmarking
 
 This repository contains a set of benchmarks, a bench harness, and graph
 generation utilities that are intended to provide some kind of objective
@@ -30,20 +30,23 @@ This should look like:
 
 ![Cumulative distribution function graph example](example_cdf.png "CDF")
 
-Here, the different solvers are displayed, with X axis showing time, and the Y
+Here, the different tools's performances are displayed, with X axis showing time, and the Y
 axis showing the number of problems solved within that time frame. Typically, a
-solver will be better when it solves more instances (i.e. higher on the Y axis)
+tool is be better when it solves more instances (i.e. higher on the Y axis)
 while being faster (i.e. more to the left on the X axis)
 
-Another graph that may be of interest is the box graph, which should look like:
+The system also generates one-on-one comparisons for all tested tools, and
+a box chart of all tools' performance on all instances.
 
-![Box graph example](example_boxgraph.png "Box Graph")
+## Adding a New Benchmark
 
-Which shows each solver's performance on each input problem.
-
-## Formats
-
-### Benchmarks
+First, a note on benchmark selection. It is important to keep in mind that the
+set of benchmarks the tools are evaluated on significantly impacts which tool
+"looks" best on e.g. the CDF plot. For fairness, we strongly recommend contract
+authors to add interesting problems via pull requests. A problem can be
+interesting because e.g. it's often needed but generally slow to solve, or
+because some or even all tools could not solve it. This can help drive
+development of tools and ensure more fairness in the comparisons.
 
 Benchmarks are defined as Solidity contracts containing calls to `assert`.
 Contracts that do not contain reachable assertion violations are contained
@@ -63,7 +66,7 @@ contract C {
 There is a global 25 second timeout applied to all tool invocations, and tools that take longer than
 this to produce a result will have an "unknown" result assigned for that benchmark.
 
-### Harnesses
+## Adding a New Tool
 
 In order to include a tool in this repository, you should add a script for that
 tool under `tools/<tool_name>.sh`. You will also need to add a script

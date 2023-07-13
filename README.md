@@ -1,46 +1,54 @@
 # Ethereum Smart Contract Benchmarks
 
-This repository contains a set of bechmarks that are intended to provide some kind of objective
-measurements for the strengths and weaknesses of various analysis tooling targeting Ethereum smart
-contracts. In practice this means tools that consume Solidity, Yul, or EVM bytecode.
+This repository contains a set of benchmarks, a bench harness, and graph
+generation utilities that are intended to provide some kind of objective
+measurements for the strengths and weaknesses of various static analysis
+tooling targeting Ethereum smart contracts. In practice this means tools that
+consume Solidity, Yul, or EVM bytecode.
 
-The benchmarks in this repo should be useful to developers of all kinds of tools, including fuzzers,
-static analyzers, and symbolic execution engines.
+The benchmarks in this repo should be useful to developers of all kinds of
+tools, including fuzzers, static analyzers, and symbolic execution engines.
 
-In order to make interoperabilty as easy as possible we define standard formats for both benchmarks
-and counterexamples (to allow for the detection of false positives with an external reference tool).
+In order to make interoperability as easy as possible we define standard
+formats for both benchmarks and counterexamples (to allow for the detection of
+false positives with an external reference tool).
 
 ## Using This Repository
 
-We use Nix to provide a zero overhead reproducible environment that contains all tools required to
-run the benchmarks. If you want to add a new tool then you need to extend the `flake.nix` so that
-this tool is present in the `devShell`.
+We use Nix to provide a zero overhead reproducible environment that contains
+all tools required to run the benchmarks. If you want to add a new tool then
+you need to extend the `flake.nix` so that this tool is present in the
+`devShell`.
 
-To enter the envrionment, run `nix develop`, and then run `python bench.py` to execute the
-benchmarks. This will write the results of the benchmarks to a `results.json` file with the
-following format:
+To enter the environment, run `nix develop`, and then run `python bench.py` to
+execute the benchmarks. The results are collected in `results.db` sqlite3
+database and the csv and json files `results-[timestamp].csv/json`.
 
-```json
-{
-  "tool_name": {
-    "solidity_file": {
-      "contract_name": {
-        "expected": <safe/unsafe>,
-        "result": <safe/unsafe/unknown>,
-        "time_taken": <time taken (ms)>
-      }
-    }
-  }
-}
-```
+To generate graphs, run `python gen_graph.py`. Results. For example, you can
+look at the cumulative distribution function (CDF) graph to get an overview.
+This should look like:
+
+![Cumulative distribution function graph example](example_cdf.png "CDF")
+
+Here, the different solvers are displayed, with X axis showing time, and the Y
+axis showing the number of problems solved within that time frame. Typically, a
+solver will be better when it solves more instances (i.e. higher on the Y axis)
+while being faster (i.e. more to the left on the X axis)
+
+Another graph that may be of interest is the box graph, which should look like:
+
+![Box graph example](example_boxgraph.png "Box Graph")
+
+Which shows each solver's performance on each input problem.
 
 ## Formats
 
 ### Benchmarks
 
-Benchmarks are defined as Solidity contracts containing calls to `assert`. Contracts that do not
-contain reachable assertion violations are contained within the `src/safe` directory, and those that
-do are contained within `src/unsafe`.
+Benchmarks are defined as Solidity contracts containing calls to `assert`.
+Contracts that do not contain reachable assertion violations are contained
+within the `src/safe` directory, and those that do are contained within
+`src/unsafe`.
 
 An example benchmark:
 
@@ -52,27 +60,27 @@ contract C {
 }
 ```
 
-There is a global 5 minute timeout applied to all tool invocations, and tools that take longer than
+There is a global 25 second timeout applied to all tool invocations, and tools that take longer than
 this to produce a result will have an "unknown" result assigned for that benchmark.
 
 ### Harnesses
 
-In order to include a tool in this repository, you should add a script for that tool under `tools/<tool_name>.sh`.
+In order to include a tool in this repository, you should add a script for that
+tool under `tools/<tool_name>.sh`. You will also need to add a script
+`tools/<tool_name>_version.sh`. Then, add a line to `bench.py` that explains to
+the script how your tool is used.
 
-This script should have the signature: `tools/SCRIPT_NAME <solidity_file> <contract_name>`.
-
-It should output:
+Your main shell script should output:
 
 - "safe": if the contract contains no reachable assertion violations
 - "unsafe": if the contract contains at least one reachable assertion violation
 - "unknown": if the tool was unable to determine whether a reachable assertion violation is present
 
-Before executing the benchmarks, `forge build` is invoked on all Solidity files in the repository, and
-tools that operate on EVM bytecode can read the compiled bytecode directly from the forge build
-outputs.
+Before executing the benchmarks, either `forge build` or python crytic compile
+(configurable in bench.py) is invoked on all Solidity files in the repository,
+and tools that operate on EVM bytecode can read the compiled bytecode directly
+from the respective build outputs.
 
-A helper function (`get_runtime_bytecode`) is available in `tools/utils.sh` that will return the
-runtime bytecode when called with the solidity file path and contract name.
-
-In the future we aim to extend the returned information with a common format for counterexamples
-that can be validated against some reference EVM implementation (e.g. geth).
+Check out the examples for `hevm` and `halmos` in the repository for examples.
+Note that in order for others to run your tool with the same easy-of-use, it
+needs to be added to `flake.nix`.

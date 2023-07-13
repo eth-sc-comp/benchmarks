@@ -169,6 +169,86 @@ def gen_cdf_graph() -> None:
     print("graph generated: cdf.eps")
     print("graph generated: cdf.png")
 
+def gen_boxgraphs() -> None:
+    all_names = []
+    with sqlite3.connect("results.db") as cur:
+        names = cur.execute("select name from results group by name")
+    for n in names:
+        all_names.append(n[0])
+
+    all_solvers = []
+    with sqlite3.connect("results.db") as cur:
+        solvers = cur.execute("select solver from results group by solver")
+    for n in solvers:
+        all_solvers.append(n[0])
+
+    # generate data
+    boxdatafile = "boxdata.dat"
+    with open(boxdatafile, "w") as f:
+        with sqlite3.connect("results.db") as cur:
+            s = {}
+            for i in range(len(all_names)):
+                name = all_names[i]
+                ret = cur.execute("""
+                select name, solver, t, tout
+                from results
+                where name='{name}'""".format(name=name))
+                for l in ret:
+                    name = l[0]
+                    solver = l[1]
+                    t = l[2]
+                    tout = l[3]
+                    t = min(t, tout)
+                    s[solver] = t
+                name_clean = os.path.basename(name).replace("_", "\\\\\\_")
+                f.write("{i} {name} ".format(name=name_clean, i=i+1))
+                for solver in all_solvers:
+                    if solver not in s:
+                        num = tout
+                    else:
+                        num = s[solver]
+                    f.write(" {t}".format(name=name, solver=solver, t=num))
+                f.write("\n")
+
+    # generate gnuplot file
+    fname_gnuplot = "boxplot.gnuplot"
+    w = 0.1
+    with open(fname_gnuplot, "w") as f:
+        for t in ["eps", "png"]:
+            if t == "eps":
+                f.write("set term postscript eps color lw 1 \"Helvetica\" 6 size 8,3\n")
+            elif t == "png":
+                f.write("set term pngcairo font \"Arial,9\" size 1800,900\n")
+            f.write("set output \"boxchart.{t}\"\n".format(t=t))
+            f.write("set boxwidth {w}\n".format(w=str(w)))
+            f.write("set style fill solid\n")
+            f.write("set xtics rotate by -45\n")
+            f.write("set key outside bottom right\n")
+            f.write("set notitle\n")
+            f.write("plot [0:] \\\n")
+            half = len(all_solvers)/2.0
+            mid = False
+            for i in range(len(all_solvers)):
+                solver = all_solvers[i]
+                if i < len(all_solvers)/2:
+                    f.write("\"{boxdatafile}\" using ($1-{offs}):{at} with boxes t \"{solver}\"".format(
+                        boxdatafile=boxdatafile, solver=solver, offs = (0.1*(half-i)), at=i+2))
+                else:
+                    if not mid:
+                        mid = True
+                        f.write("\"{boxdatafile}\" using 1:{at}:xtic(2) with boxes t \"{solver}\"".format(
+                            boxdatafile=boxdatafile, solver=solver, offs = (0.1*(i-half)), at=i+2))
+                    else:
+                        f.write("\"{boxdatafile}\" using ($1+{offs}):{at} with boxes t \"{solver}\"".format(
+                            boxdatafile=boxdatafile, solver=solver, offs = (0.1*(i-half)), at=i+2))
+
+                if i < len(all_solvers)-1:
+                    f.write(", \\\n")
+                else:
+                    f.write("\n")
+            f.write("\n")
+    os.system("gnuplot "+fname_gnuplot)
+
 
 def main() -> None:
     try:
@@ -177,7 +257,7 @@ def main() -> None:
         pass
     gen_cdf_graph()
     gen_comparative_graphs()
-    # TODO other functions
+    gen_boxgraphs()
 
 
 if __name__ == "__main__":

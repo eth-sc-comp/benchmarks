@@ -169,15 +169,118 @@ def gen_cdf_graph() -> None:
     print("graph generated: cdf.eps")
     print("graph generated: cdf.png")
 
+def check_all_same_tout() -> None:
+    with sqlite3.connect("results.db") as cur:
+        ret = cur.execute("""
+        select tout
+        from results
+        group by tout""")
+        touts = []
+        for l in ret:
+            touts.append(l[0])
+
+    if len(touts) > 1:
+        print("ERROR. Some systems were ran with differing timeouts: ")
+        for t in touts:
+            print("timout observed: ", t)
+        print("You must delete the results.db database and run all with the same timeouts")
+        exit(-1)
+    if len(touts) == 0:
+        print("ERROR: no data in database!")
+        exit(-1)
+
+def gen_boxgraphs() -> None:
+    all_instances = []
+    with sqlite3.connect("results.db") as cur:
+        instances = cur.execute("select name from results group by name")
+    for n in instances:
+        all_instances.append(n[0])
+
+    all_solvers = []
+    with sqlite3.connect("results.db") as cur:
+        solvers = cur.execute("select solver from results group by solver")
+    for n in solvers:
+        all_solvers.append(n[0])
+
+    # generate data
+    fname_boxdata = "boxdata.dat"
+    tout = None
+    with open(fname_boxdata, "w") as f:
+        with sqlite3.connect("results.db") as cur:
+            solve_time = {}
+            for i in range(len(all_instances)):
+                instance = all_instances[i]
+                ret = cur.execute("""
+                select name, solver, (case when result=='unknown' then tout else t end),tout
+                from results
+                where name='{instance}'""".format(instance=instance))
+                for l in ret:
+                    assert instance == l[0]
+                    solver = l[1]
+                    t = l[2]
+                    tout = l[3]
+                    t = min(t, tout)
+                    solve_time[solver] = t
+                instance_clean = os.path.basename(instance).replace("_", "\\\\\\_")
+                f.write("{i} {instance}".format(instance=instance_clean, i=i+1))
+                for solver in all_solvers:
+                    assert tout is not None
+                    if solver not in solve_time:
+                        print("ERROR, solver '{solver}' was not run on instance '{instance}'".format(instance=instance, solver=solver))
+                        exit(-1)
+                    f.write(" {t}".format(t=solve_time[solver]))
+                f.write("\n")
+
+    # generate gnuplot file
+    fname_gnuplot = "boxplot.gnuplot"
+    w = 0.1
+    with open(fname_gnuplot, "w") as f:
+        for t in ["eps", "png"]:
+            if t == "eps":
+                f.write("set term postscript eps color lw 1 \"Helvetica\" 6 size 8,3\n")
+            elif t == "png":
+                f.write("set term pngcairo font \"Arial,9\" size 1800,900\n")
+            f.write("set output \"boxchart.{t}\"\n".format(t=t))
+            print("Generating boxchart.{t}".format(t=t))
+            f.write("set boxwidth {w}\n".format(w=str(w)))
+            f.write("set style fill solid\n")
+            f.write("set xtics rotate by -45\n")
+            f.write("set key outside bottom right\n")
+            f.write("set notitle\n")
+            f.write("plot [0:] \\\n")
+            half = round(len(all_solvers)/2.0)
+            mid = False
+            for i in range(len(all_solvers)):
+                solver = all_solvers[i]
+                if i < len(all_solvers)/2:
+                    f.write("\"{fname_boxdata}\" using ($1-{offs}):{at} with boxes t \"{solver}\"".format(
+                        fname_boxdata=fname_boxdata, solver=solver, offs = (0.1*(half-i)), at=i+3))
+                else:
+                    if not mid:
+                        mid = True
+                        f.write("\"{fname_boxdata}\" using 1:{at}:xtic(2) with boxes t \"{solver}\"".format(
+                            fname_boxdata=fname_boxdata, solver=solver, offs = (0.1*(i-half)), at=i+3))
+                    else:
+                        f.write("\"{fname_boxdata}\" using ($1+{offs}):{at} with boxes t \"{solver}\"".format(
+                            fname_boxdata=fname_boxdata, solver=solver, offs = (0.1*(i-half)), at=i+3))
+
+                if i < len(all_solvers)-1:
+                    f.write(", \\\n")
+            f.write("\n")
+    os.system("gnuplot "+fname_gnuplot)
+    os.unlink(fname_gnuplot)
+    os.unlink(fname_boxdata)
+
 
 def main() -> None:
     try:
         os.mkdir("graphs")
     except FileExistsError:
         pass
+    check_all_same_tout();
     gen_cdf_graph()
     gen_comparative_graphs()
-    # TODO other functions
+    gen_boxgraphs()
 
 
 if __name__ == "__main__":

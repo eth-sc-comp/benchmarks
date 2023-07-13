@@ -47,7 +47,9 @@ their functions checked to have triggerable assert statements. For these files,
 either the entire contract is deemed safe or unsafe. The files under
 `src/safe/ds-test` and under `src/unsafe/ds-test` are tested differently. Here,
 only functions starting with the `prove` keyword are tested, individually,
-for safety. Hence, each function may be individually deemed safe/unsafe.
+for safety. Hence, each function may be individually deemed safe/unsafe. Contracts
+under these directories can use the full set of foundry
+[cheatcodes](https://book.getfoundry.sh/cheatcodes/) and assertion helpers.
 
 An example `1tx` benchmark is below. It would be under
 `src/unsafe/1tx-abstract` since the `assert` can be triggered with `x=10`. 

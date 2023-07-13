@@ -9,9 +9,6 @@ consume Solidity, Yul, or EVM bytecode.
 The benchmarks in this repo should be useful to developers of all kinds of
 tools, including fuzzers, static analyzers, and symbolic execution engines.
 
-In order to make interoperability as easy as possible we define standard
-formats for both benchmarks and counterexamples (to allow for the detection of
-false positives with an external reference tool).
 
 ## Using This Repository
 

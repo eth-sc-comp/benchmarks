@@ -41,10 +41,13 @@ interesting because e.g. it's often needed but generally slow to solve, or
 because some or even all tools could not solve it. This can help drive
 development of tools and ensure more fairness in the comparisons.
 
-Benchmarks are defined as Solidity contracts containing calls to `assert`.
-Contracts that do not contain reachable assertion violations are contained
-within the `src/safe` directory, and those that do are contained within
-`src/unsafe`.
+There are two types of benchmarks. The ones under `src/safe/1tx-abstract` and
+under `src/unsafe/1tx-abstract` are standard Solidity contracts that have all
+their functions checked to have triggerable assert statements. For these files,
+either the entire contract is deemed safe or unsafe. The files under
+`src/safe/ds-test` and under `src/unsafe/ds-test` are tested differently. Here,
+only functions starting with the `prove` keyword are tested, individually,
+for safety. Hence, each function may be individually deemed safe/unsafe.
 
 An example benchmark:
 

@@ -78,5 +78,5 @@ and tools that operate on EVM bytecode can read the compiled bytecode directly
 from the respective build outputs.
 
 Check out the examples for `hevm` and `halmos` in the repository for examples.
-Note that in order for others to run your tool with the same easy-of-use, it
+Note that in order for others to run your tool, it
 needs to be added to `flake.nix`.

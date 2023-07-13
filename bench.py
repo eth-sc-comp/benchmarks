@@ -44,18 +44,18 @@ def build_crytic() -> None:
         exit(-1)
 
 tools = {
-    # "hevm-cvc5": {
-    #     "call": "tools/hevm.sh",
-    #     "version": "tools/hevm_version.sh",
-    #     "extra_opts": ["--solver", "cvc5"],
-    #     "build": build_forge
-    # },
-    # "hevm-z3": {
-    #     "call": "tools/hevm.sh",
-    #     "version": "tools/hevm_version.sh",
-    #     "extra_opts": ["--solver","z3"],
-    #     "build": build_forge
-    # },
+    "hevm-cvc5": {
+        "call": "tools/hevm.sh",
+        "version": "tools/hevm_version.sh",
+        "extra_opts": ["--solver", "cvc5"],
+        "build": build_forge
+    },
+    "hevm-z3": {
+        "call": "tools/hevm.sh",
+        "version": "tools/hevm_version.sh",
+        "extra_opts": ["--solver","z3"],
+        "build": build_forge
+    },
     "halmos": {
         "call": "tools/halmos.sh",
         "version": "tools/halmos_version.sh",

@@ -266,8 +266,6 @@ def gen_boxgraphs() -> None:
 
                 if i < len(all_solvers)-1:
                     f.write(", \\\n")
-                else:
-                    f.write("\n")
             f.write("\n")
     os.system("gnuplot "+fname_gnuplot)
     os.unlink(fname_gnuplot)

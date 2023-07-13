@@ -72,7 +72,7 @@ Your main shell script should output:
 - "unsafe": if the contract contains at least one reachable assertion violation
 - "unknown": if the tool was unable to determine whether a reachable assertion violation is present
 
-Before executing the benchmarks, either `forge build` or python crytic compile
+Before executing the benchmarks, either `forge build` or `python crytic compile`
 (configurable in bench.py) is invoked on all Solidity files in the repository,
 and tools that operate on EVM bytecode can read the compiled bytecode directly
 from the respective build outputs.

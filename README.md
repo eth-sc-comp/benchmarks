@@ -49,18 +49,42 @@ either the entire contract is deemed safe or unsafe. The files under
 only functions starting with the `prove` keyword are tested, individually,
 for safety. Hence, each function may be individually deemed safe/unsafe.
 
-An example benchmark:
+An example `1tx` benchmark is below. It would be under
+`src/unsafe/1tx-abstract` since the `assert` can be triggered with `x=10`. 
 
 ```sol
 contract C {
-    function f() public {
-      assert(false);
+    function f(uint256 x) public {
+      assert(x != 10);
     }
 }
 ```
 
-There is a global 25 second timeout applied to all tool invocations, and tools that take longer than
-this to produce a result will have an "unknown" result assigned for that benchmark.
+
+An example `ds-test` benchmark is below. It would be under
+`src/unsafe/ds-test` since the `assert` can be triggered with `x=11`.
+
+```sol
+contract C {
+    function prove_f(uint256 x) public {
+      assert(x != 11);
+    }
+}
+```
+
+## Execution Environments
+
+Currently, there is a global 25 second wallclock timeout applied to all tool
+invocations. This is adjustable with the `-t` option to `bench.py`. Tools that
+take longer than this to produce a result for a benchmark will have an
+"unknown" result assigned. There is currently no memory limit enforced.
+
+Each tool is allowed to use as many threads as it wishes, typically
+auto-detected by each tool to be the number of cores in the system. This means
+that the execution environment may have an impact on the results. Tools that
+are e.g. single-threaded may seem to perform better in environments with few
+cores, while the reverse may be the case for tools with a high level of
+parallelism and an execution environment with 128+ cores.
 
 ## Adding a New Tool
 

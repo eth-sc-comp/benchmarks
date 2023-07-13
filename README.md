@@ -1,4 +1,4 @@
-# Ethereum Smart Contract Symbolic Execution Benchmarking
+# Ethereum Smart Contract Analysis Benchmarking
 
 This repository contains a set of benchmarks, a bench harness, and graph
 generation utilities that are intended to provide some kind of objective

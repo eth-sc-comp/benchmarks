@@ -190,11 +190,11 @@ def check_all_same_tout() -> None:
         exit(-1)
 
 def gen_boxgraphs() -> None:
-    all_names = []
+    all_instances = []
     with sqlite3.connect("results.db") as cur:
-        names = cur.execute("select name from results group by name")
-    for n in names:
-        all_names.append(n[0])
+        instances = cur.execute("select name from results group by name")
+    for n in instances:
+        all_instances.append(n[0])
 
     all_solvers = []
     with sqlite3.connect("results.db") as cur:
@@ -203,33 +203,32 @@ def gen_boxgraphs() -> None:
         all_solvers.append(n[0])
 
     # generate data
-    boxdatafile = "boxdata.dat"
+    fname_boxdata = "boxdata.dat"
     tout = None
-    with open(boxdatafile, "w") as f:
+    with open(fname_boxdata, "w") as f:
         with sqlite3.connect("results.db") as cur:
-            s = {}
-            for i in range(len(all_names)):
-                name = all_names[i]
+            solve_time = {}
+            for i in range(len(all_instances)):
+                instance = all_instances[i]
                 ret = cur.execute("""
                 select name, solver, (case when result=='unknown' then tout else t end),tout
                 from results
-                where name='{name}'""".format(name=name))
+                where name='{instance}'""".format(instance=instance))
                 for l in ret:
-                    name = l[0]
+                    assert instance == l[0]
                     solver = l[1]
                     t = l[2]
                     tout = l[3]
                     t = min(t, tout)
-                    s[solver] = t
-                name_clean = os.path.basename(name).replace("_", "\\\\\\_")
-                f.write("{i} {name}".format(name=name_clean, i=i+1))
+                    solve_time[solver] = t
+                instance_clean = os.path.basename(instance).replace("_", "\\\\\\_")
+                f.write("{i} {instance}".format(instance=instance_clean, i=i+1))
                 for solver in all_solvers:
                     assert tout is not None
-                    if solver not in s:
-                        num = tout
-                    else:
-                        num = s[solver]
-                    f.write(" {t}".format(name=name, solver=solver, t=num))
+                    if solver not in solve_time:
+                        print("ERROR, solver '{solver}' was not run on instance '{instance}'".format(instance=instance, solver=solver))
+                        exit(-1)
+                    f.write(" {t}".format(t=solve_time[solver]))
                 f.write("\n")
 
     # generate gnuplot file
@@ -254,16 +253,16 @@ def gen_boxgraphs() -> None:
             for i in range(len(all_solvers)):
                 solver = all_solvers[i]
                 if i < len(all_solvers)/2:
-                    f.write("\"{boxdatafile}\" using ($1-{offs}):{at} with boxes t \"{solver}\"".format(
-                        boxdatafile=boxdatafile, solver=solver, offs = (0.1*(half-i)), at=i+3))
+                    f.write("\"{fname_boxdata}\" using ($1-{offs}):{at} with boxes t \"{solver}\"".format(
+                        fname_boxdata=fname_boxdata, solver=solver, offs = (0.1*(half-i)), at=i+3))
                 else:
                     if not mid:
                         mid = True
-                        f.write("\"{boxdatafile}\" using 1:{at}:xtic(2) with boxes t \"{solver}\"".format(
-                            boxdatafile=boxdatafile, solver=solver, offs = (0.1*(i-half)), at=i+3))
+                        f.write("\"{fname_boxdata}\" using 1:{at}:xtic(2) with boxes t \"{solver}\"".format(
+                            fname_boxdata=fname_boxdata, solver=solver, offs = (0.1*(i-half)), at=i+3))
                     else:
-                        f.write("\"{boxdatafile}\" using ($1+{offs}):{at} with boxes t \"{solver}\"".format(
-                            boxdatafile=boxdatafile, solver=solver, offs = (0.1*(i-half)), at=i+3))
+                        f.write("\"{fname_boxdata}\" using ($1+{offs}):{at} with boxes t \"{solver}\"".format(
+                            fname_boxdata=fname_boxdata, solver=solver, offs = (0.1*(i-half)), at=i+3))
 
                 if i < len(all_solvers)-1:
                     f.write(", \\\n")
@@ -271,6 +270,8 @@ def gen_boxgraphs() -> None:
                     f.write("\n")
             f.write("\n")
     os.system("gnuplot "+fname_gnuplot)
+    os.unlink(fname_gnuplot)
+    os.unlink(fname_boxdata)
 
 
 def main() -> None:

@@ -2,7 +2,7 @@
 
 This repository contains a set of benchmarks, a bench harness, and graph
 generation utilities that are intended to provide some kind of objective
-measurements for the strengths and weaknesses of various static analysis
+measurements for the strengths and weaknesses of various analysis
 tooling targeting Ethereum smart contracts. In practice this means tools that
 consume Solidity, Yul, or EVM bytecode.
 

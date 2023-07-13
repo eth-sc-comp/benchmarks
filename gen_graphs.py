@@ -201,7 +201,7 @@ def gen_boxgraphs() -> None:
                     t = min(t, tout)
                     s[solver] = t
                 name_clean = os.path.basename(name).replace("_", "\\\\\\_")
-                f.write("{i} {name} ".format(name=name_clean, i=i+1))
+                f.write("{i} {name}".format(name=name_clean, i=i+1))
                 for solver in all_solvers:
                     if solver not in s:
                         num = tout
@@ -232,15 +232,15 @@ def gen_boxgraphs() -> None:
                 solver = all_solvers[i]
                 if i < len(all_solvers)/2:
                     f.write("\"{boxdatafile}\" using ($1-{offs}):{at} with boxes t \"{solver}\"".format(
-                        boxdatafile=boxdatafile, solver=solver, offs = (0.1*(half-i)), at=i+2))
+                        boxdatafile=boxdatafile, solver=solver, offs = (0.1*(half-i)), at=i+3))
                 else:
                     if not mid:
                         mid = True
                         f.write("\"{boxdatafile}\" using 1:{at}:xtic(2) with boxes t \"{solver}\"".format(
-                            boxdatafile=boxdatafile, solver=solver, offs = (0.1*(i-half)), at=i+2))
+                            boxdatafile=boxdatafile, solver=solver, offs = (0.1*(i-half)), at=i+3))
                     else:
                         f.write("\"{boxdatafile}\" using ($1+{offs}):{at} with boxes t \"{solver}\"".format(
-                            boxdatafile=boxdatafile, solver=solver, offs = (0.1*(i-half)), at=i+2))
+                            boxdatafile=boxdatafile, solver=solver, offs = (0.1*(i-half)), at=i+3))
 
                 if i < len(all_solvers)-1:
                     f.write(", \\\n")

@@ -169,6 +169,26 @@ def gen_cdf_graph() -> None:
     print("graph generated: cdf.eps")
     print("graph generated: cdf.png")
 
+def check_all_same_tout() -> None:
+    with sqlite3.connect("results.db") as cur:
+        ret = cur.execute("""
+        select tout
+        from results
+        group by tout""")
+        touts = []
+        for l in ret:
+            touts.append(l[0])
+
+    if len(touts) > 1:
+        print("ERROR. Some systems were ran with differing timeouts: ")
+        for t in touts:
+            print("timout observed: ", t)
+        print("You must delete the results.db database and run all with the same timeouts")
+        exit(-1)
+    if len(touts) == 0:
+        print("ERROR: no data in database!")
+        exit(-1)
+
 def gen_boxgraphs() -> None:
     all_names = []
     with sqlite3.connect("results.db") as cur:
@@ -184,13 +204,14 @@ def gen_boxgraphs() -> None:
 
     # generate data
     boxdatafile = "boxdata.dat"
+    tout = None
     with open(boxdatafile, "w") as f:
         with sqlite3.connect("results.db") as cur:
             s = {}
             for i in range(len(all_names)):
                 name = all_names[i]
                 ret = cur.execute("""
-                select name, solver, t, tout
+                select name, solver, (case when result=='unknown' then tout else t end),tout
                 from results
                 where name='{name}'""".format(name=name))
                 for l in ret:
@@ -203,6 +224,7 @@ def gen_boxgraphs() -> None:
                 name_clean = os.path.basename(name).replace("_", "\\\\\\_")
                 f.write("{i} {name}".format(name=name_clean, i=i+1))
                 for solver in all_solvers:
+                    assert tout is not None
                     if solver not in s:
                         num = tout
                     else:
@@ -220,13 +242,14 @@ def gen_boxgraphs() -> None:
             elif t == "png":
                 f.write("set term pngcairo font \"Arial,9\" size 1800,900\n")
             f.write("set output \"boxchart.{t}\"\n".format(t=t))
+            print("Generating boxchart.{t}".format(t=t))
             f.write("set boxwidth {w}\n".format(w=str(w)))
             f.write("set style fill solid\n")
             f.write("set xtics rotate by -45\n")
             f.write("set key outside bottom right\n")
             f.write("set notitle\n")
             f.write("plot [0:] \\\n")
-            half = len(all_solvers)/2.0
+            half = round(len(all_solvers)/2.0)
             mid = False
             for i in range(len(all_solvers)):
                 solver = all_solvers[i]
@@ -255,6 +278,7 @@ def main() -> None:
         os.mkdir("graphs")
     except FileExistsError:
         pass
+    check_all_same_tout();
     gen_cdf_graph()
     gen_comparative_graphs()
     gen_boxgraphs()

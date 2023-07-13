@@ -74,7 +74,7 @@ contract C {
 
 ## Execution Environments
 
-Currently, there is a global 25 second wallclock timeout applied to all tool
+Currently, there is a global 25 second wall clock timeout applied to all tool
 invocations. This is adjustable with the `-t` option to `bench.py`. Tools that
 take longer than this to produce a result for a benchmark will have an
 "unknown" result assigned. There is currently no memory limit enforced.

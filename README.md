@@ -21,7 +21,7 @@ To enter the environment, run `nix develop`, and then run `python bench.py` to
 execute the benchmarks. The results are collected in `results.db` sqlite3
 database and the csv and json files `results-[timestamp].csv/json`.
 
-To generate graphs, run `python gen_graph.py`. Results. For example, you can
+To generate graphs, run `python gen_graph.py`.  For example, you can
 look at the cumulative distribution function (CDF) graph to get an overview.
 Here, the different tools's performances are displayed, with X axis showing
 time, and the Y axis showing the number of problems solved within that time

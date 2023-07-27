@@ -19,6 +19,11 @@
     };
   };
 
+  nixConfig = {
+    extra-substituters = [ "https://k-framework.cachix.org" ];
+    extra-trusted-public-keys = [ "k-framework.cachix.org-1:jeyMXB2h28gpNRjuVkehg+zLj62ma1RnyyopA/20yFE=" ];
+  };
+
   outputs = { self, nixpkgs, flake-utils, kevm, hevm, foundry, echidna, halmos-src, runlim-src }:
     flake-utils.lib.eachDefaultSystem (system:
       let

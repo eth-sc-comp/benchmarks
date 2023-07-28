@@ -10,7 +10,7 @@
     foundry.url = "github:shazow/foundry.nix/monthly";
     echidna.url = "github:crytic/echidna";
     halmos-src = {
-      url = "github:a16z/halmos";
+      url = "github:a16z/halmos/v0.1.1";
       flake = false;
     };
     runlim-src = {
@@ -39,7 +39,7 @@
         };
         halmos = pkgs.python3.pkgs.buildPythonApplication rec {
           pname = "halmos";
-          version = "0.0.0";
+          version = "0.1.1";
           src = halmos-src;
           format = "pyproject";
           doCheck = false;

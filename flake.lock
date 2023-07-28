@@ -800,15 +800,16 @@
     "halmos-src": {
       "flake": false,
       "locked": {
-        "lastModified": 1690355154,
-        "narHash": "sha256-1tFGqe+BIQsxFXh3QfkpBUt9qnLkRhsPK8NMEOmc2ow=",
+        "lastModified": 1690353274,
+        "narHash": "sha256-fhaK2m58zfEC4D6Rpj1evqaWJbFujB+2TzUiBXgTw5c=",
         "owner": "a16z",
         "repo": "halmos",
-        "rev": "a9384a54528da2b8ac53a5053e8f16857e5e6c8a",
+        "rev": "ca2b3c330df744afc462c301805bc688e356a9c9",
         "type": "github"
       },
       "original": {
         "owner": "a16z",
+        "ref": "v0.1.1",
         "repo": "halmos",
         "type": "github"
       }

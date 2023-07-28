@@ -490,7 +490,7 @@ contract SacredGeometryTest is Test {
     }
 
     /// @dev sanity check to verify that the contract is deployed correctly
-    function testName() public {
+    function test_name() public {
         string memory name = challenge.name();
         assertEq(keccak256(bytes(name)), keccak256(bytes("Sacred Geometry")));
     }

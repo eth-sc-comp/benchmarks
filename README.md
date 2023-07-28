@@ -17,9 +17,16 @@ all tools required to run the benchmarks. If you want to add a new tool then
 you need to extend the `flake.nix` so that this tool is present in the
 `devShell`.
 
-To enter the environment, run `nix develop`, and then run `python bench.py` to
-execute the benchmarks. The results are collected in `results.db` sqlite3
-database and the csv and json files `results-[timestamp].csv/json`.
+To enter the environment, run `nix develop`. If it's your first time running
+this command you will be prompted to ask if you want to allow changes to the
+configuration settings for `extra-substituters` and `extra-trusted-public-keys`.
+If you accept these changes the runtime verification binary cache will be used
+when building `kevm`. This should significantly speed up the time it takes to
+prepare the environment.
+
+Once you have a working shell, you can run `python bench.py` to execute the
+benchmarks. The results are collected in `results.db` sqlite3 database and the
+csv and json files `results-[timestamp].csv/json`.
 
 To generate graphs, run `python gen_graph.py`.  For example, you can
 look at the cumulative distribution function (CDF) graph to get an overview.
@@ -52,7 +59,7 @@ under these directories can use the full set of foundry
 [cheatcodes](https://book.getfoundry.sh/cheatcodes/) and assertion helpers.
 
 An example `1tx` benchmark is below. It would be under
-`src/unsafe/1tx-abstract` since the `assert` can be triggered with `x=10`. 
+`src/unsafe/1tx-abstract` since the `assert` can be triggered with `x=10`.
 
 ```sol
 contract C {

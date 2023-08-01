@@ -36,7 +36,7 @@
             mkdir -p $out/bin
           '';
           makeFlags = ["PREFIX=$(out)"];
-          buildInputs = [ pkgs.coreutils pkgs.gnumake ];
+          buildInputs = [ pkgs.coreutils pkgs.gnumake pkgs.gcc];
         };
         halmos = pkgs.python3.pkgs.buildPythonApplication rec {
           pname = "halmos";

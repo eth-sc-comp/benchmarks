@@ -222,7 +222,7 @@ def execute_case(tool: str, extra_opts: list[str], case: Case) -> Result:
     before = time.time_ns()
     fname_time = unique_file("output")
     toexec = ["time", "--verbose", "-o", "%s" % fname_time,
-              tool, case.sol_file, case.contract, case.fun, "%i" % case.ds]
+              tool, case.sol_file, case.contract, case.fun, "%i" % case.ds, "%s" % opts.timeout]
     toexec.extend(extra_opts)
     print("Running: %s" % (" ".join(toexec)))
     res = subprocess.run(toexec, capture_output=True, encoding="utf-8")

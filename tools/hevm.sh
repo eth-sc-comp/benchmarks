@@ -13,9 +13,9 @@ source "$SCRIPT_DIR/utils.sh"
 
 if [[ "${ds_test}" == "0" ]]; then
     code=$(get_runtime_bytecode "${contract_file}" "${contract_name}")
-    out=$(doalarm -t alarm "${tout}" hevm symbolic --code "${code}" "$@")
+    out=$(doalarm -t real "${tout}" hevm symbolic --code "${code}" "$@")
 elif [[ "${ds_test}" == "1" ]]; then
-    out=$(doalarm -t alarm "${tout}" hevm test --match "${contract_file}.*${fun_name}" "$@")
+    out=$(doalarm -t real "${tout}" hevm test --match "${contract_file}.*${fun_name}" "$@")
 else
     echo "Called incorrectly"
     exit 1

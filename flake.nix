@@ -6,15 +6,15 @@
     nixpkgs.url = "github:nixos/nixpkgs";
 
     hevm.url = "github:ethereum/hevm";
-    kevm.url = "github:runtimeverification/evm-semantics";
+    # kevm.url = "github:runtimeverification/evm-semantics";
     foundry.url = "github:shazow/foundry.nix/monthly";
     echidna.url = "github:crytic/echidna";
     halmos-src = {
       url = "github:a16z/halmos";
       flake = false;
     };
-    runlim-src = {
-      url = "github:msooseth/runlim";
+    doalarm-src = {
+      url = "github:msooseth/doalarm";
       flake = false;
     };
   };
@@ -24,18 +24,19 @@
     extra-trusted-public-keys = [ "k-framework.cachix.org-1:jeyMXB2h28gpNRjuVkehg+zLj62ma1RnyyopA/20yFE=" ];
   };
 
-  outputs = { self, nixpkgs, flake-utils, kevm, hevm, foundry, echidna, halmos-src, runlim-src }:
+  outputs = { self, nixpkgs, flake-utils, hevm, foundry, echidna, halmos-src, doalarm-src }:
     flake-utils.lib.eachDefaultSystem (system:
       let
         pkgs = nixpkgs.legacyPackages.${system};
-        runlim = pkgs.stdenv.mkDerivation {
-          pname = "runlim";
+        doalarm = pkgs.stdenv.mkDerivation {
+          pname = "doalarm";
           version = "1.0";
+          src = doalarm-src;
           configurePhase = ''
             mkdir -p $out/bin
-            ./configure.sh --prefix=$out/bin
           '';
-          src = runlim-src;
+          makeFlags = ["PREFIX=$(out)"];
+          buildInputs = [ pkgs.coreutils pkgs.gnumake ];
         };
         halmos = pkgs.python3.pkgs.buildPythonApplication rec {
           pname = "halmos";
@@ -57,7 +58,7 @@
             # tools
             halmos
             hevm.packages.${system}.default
-            kevm.packages.${system}.default
+            # kevm.packages.${system}.default
             echidna.packages.${system}.default
             foundry.defaultPackage.${system}
             pkgs.solc
@@ -72,7 +73,7 @@
             pkgs.sqlite-interactive
             pkgs.gnuplot
             pkgs.time
-            runlim
+            doalarm
           ];
         };
       });

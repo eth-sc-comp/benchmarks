@@ -220,11 +220,8 @@ def execute_case(tool: str, extra_opts: list[str], case: Case) -> Result:
     result = None
     res = None
     before = time.time_ns()
-    fname_runlim = unique_file("output")
     fname_time = unique_file("output")
-    toexec = ["time", "--verbose", "-o", "%s" % fname_time, "runlim",
-              "--real-time-limit=%s" % opts.timeout, "--output-file=%s" % fname_runlim,
-              "--kill-delay=10",
+    toexec = ["time", "--verbose", "-o", "%s" % fname_time,
               tool, case.sol_file, case.contract, case.fun, "%i" % case.ds]
     toexec.extend(extra_opts)
     print("Running: %s" % (" ".join(toexec)))
@@ -235,15 +232,9 @@ def execute_case(tool: str, extra_opts: list[str], case: Case) -> Result:
     exit_status = None
     perc_CPU = None
 
-    # parse runlim output
-    with open(fname_runlim, 'r') as f:
-        for l in f:
-            # if opts.verbose: print("runlim output line: ", l.strip())
-            if re.match("^.runlim. status:.*out of time", l):
-                out_of_time = True
     if opts.verbose:
-            print("Res stdout is:", res.stdout)
-            print("Res stderr is:", res.stderr)
+        print("Res stdout is:", res.stdout)
+        print("Res stderr is:", res.stderr)
     for l in res.stdout.split("\n"):
         l = l.strip()
         match = re.match("result: (.*)$", l)
@@ -270,7 +261,6 @@ def execute_case(tool: str, extra_opts: list[str], case: Case) -> Result:
                 exit_status = int(match.group(1))
 
     assert result == "safe" or result == "unsafe" or result == "unknown"
-    os.unlink(fname_runlim)
     os.unlink(fname_time)
     if opts.verbose:
         print("Result is: ", result)

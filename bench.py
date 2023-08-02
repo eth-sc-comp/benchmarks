@@ -12,7 +12,6 @@ from typing import Literal
 import optparse
 from time import gmtime, strftime
 import csv
-from crytic_compile import CryticCompile, InvalidCompilation
 
 
 def recreate_out() -> None:
@@ -33,15 +32,6 @@ def build_forge() -> None:
         exit(-1)
     ret.check_returncode()
 
-def build_crytic() -> None:
-    print("Building with crytic...")
-    recreate_out()
-    try:
-        pwd = os.getcwd()
-        CryticCompile(target=pwd)
-    except InvalidCompilation as e:
-        print(f'Parse error: {e}')
-        exit(-1)
 
 tools = {
     "hevm-cvc5": {
@@ -60,9 +50,11 @@ tools = {
         "call": "tools/halmos.sh",
         "version": "tools/halmos_version.sh",
         "extra_opts": [],
-        "build": build_crytic
+        "build": build_forge
     }
 }
+
+
 global opts
 
 
@@ -235,9 +227,9 @@ def execute_case(tool: str, extra_opts: list[str], case: Case) -> Result:
     if opts.verbose:
         print("Res stdout is:", res.stdout)
         print("Res stderr is:", res.stderr)
-    for l in res.stdout.split("\n"):
-        l = l.strip()
-        match = re.match("result: (.*)$", l)
+    for line in res.stdout.split("\n"):
+        line = line.strip()
+        match = re.match("result: (.*)$", line)
         if match:
             result = match.group(1)
     time_taken = (after - before) / 1_000_000_000
@@ -246,17 +238,17 @@ def execute_case(tool: str, extra_opts: list[str], case: Case) -> Result:
 
     # parse `time --verbose` output
     with open(fname_time, 'r') as f:
-        for l in f:
-            l = l.strip()
-            match = re.match(r"Maximum resident set size .kbytes.: (.*)", l)
+        for line in f:
+            line = line.strip()
+            match = re.match(r"Maximum resident set size .kbytes.: (.*)", line)
             if match:
                 mem_used_MB = int(match.group(1))/1000
 
-            match = re.match(r"Percent of CPU this job got: (.*)%", l)
+            match = re.match(r"Percent of CPU this job got: (.*)%", line)
             if match:
                 perc_CPU = int(match.group(1))
 
-            match = re.match(r"Exit status:[ ]*(.*)[ ]*$", l)
+            match = re.match(r"Exit status:[ ]*(.*)[ ]*$", line)
             if match:
                 exit_status = int(match.group(1))
 

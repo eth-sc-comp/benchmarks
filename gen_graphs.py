@@ -79,7 +79,7 @@ def gen_comparative_graphs() -> None:
             else:
                 assert False
 
-            f.write("set output \""+fname+"\"\n")
+            f.write("set output \"graphs/"+fname+"\"\n")
             f.write("set notitle\n")
             f.write("set nokey\n")
             f.write("set logscale x\n")
@@ -144,7 +144,7 @@ def gen_cdf_graph() -> None:
             else:
                 assert False
 
-            f.write("set output \"cdf.%s\"\n" % t)
+            f.write("set output \"graphs/cdf.%s\"\n" % t)
             f.write("set title \"Solvers\"\n")
             f.write("set notitle\n")
             f.write("set key bottom right\n")
@@ -240,7 +240,7 @@ def gen_boxgraphs() -> None:
                 f.write("set term postscript eps color lw 1 \"Helvetica\" 6 size 8,3\n")
             elif t == "png":
                 f.write("set term pngcairo font \"Arial,9\" size 1800,900\n")
-            f.write("set output \"boxchart.{t}\"\n".format(t=t))
+            f.write("set output \"graphs/boxchart.{t}\"\n".format(t=t))
             print("Generating boxchart.{t}".format(t=t))
             f.write("set boxwidth {w}\n".format(w=str(w)))
             f.write("set style fill solid\n")

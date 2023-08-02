@@ -24,13 +24,14 @@ def recreate_out() -> None:
 
 def build_forge() -> None:
     print("Building with forge...")
-    recreate_out()
-    ret = subprocess.run(["forge", "build", "--use", opts.solc_version], capture_output=True)
-    if ret.returncode != 0:
-        print("Forge returned error(s)")
-        print(printable_output(ret.stderr))
-        exit(-1)
-    ret.check_returncode()
+    if not opts.norebuild:
+        recreate_out()
+        ret = subprocess.run(["forge", "build", "--use", opts.solc_version], capture_output=True)
+        if ret.returncode != 0:
+            print("Forge returned error(s)")
+            print(printable_output(ret.stderr))
+            exit(-1)
+        ret.check_returncode()
 
 
 tools = {
@@ -63,14 +64,16 @@ def printable_output(out):
     return ("%s" % out).replace('\\n', '\n').replace('\\t', '\t')
 
 
-# get all functions that start with 'prove'
-def get_prove_funcs(js) -> list[str]:
+# get all functions that start with 'prove' or 'check'
+def get_relevant_funcs(js) -> list[str]:
     ret = []
     for i in range(len(js["abi"])):
         if "name" not in js["abi"][i]:
             continue
         fun = js["abi"][i]["name"]
         if re.match("^prove", fun):
+            ret.append(fun)
+        if re.match("^check", fun):
             ret.append(fun)
 
     return ret
@@ -155,7 +158,7 @@ def gather_cases() -> list[Case]:
                     continue
                 ds_test = determine_dstest(sol_file)
                 if ds_test:
-                    for f in get_prove_funcs(js):
+                    for f in get_relevant_funcs(js):
                         cases.append(Case(c, json_fname, sol_file, True, f))
                 else:
                     cases.append(Case(c, json_fname, sol_file, False, ""))
@@ -194,7 +197,8 @@ def last_line_in_file(fname: str) -> str:
 # Result from a solver
 class Result:
     def __init__(self, result: str, mem_used_MB: float|None, exit_status: int|None,
-                 perc_CPU: int|None, t: float|None, tout: float|None, case: Case, out:str):
+                 perc_CPU: int|None, t: float|None, tout: float|None,
+                 case: Case, out:str):
         self.result = result
         self.exit_status = exit_status
         self.mem_used_MB = mem_used_MB
@@ -214,7 +218,8 @@ def execute_case(tool: str, extra_opts: list[str], case: Case) -> Result:
     before = time.time_ns()
     fname_time = unique_file("output")
     toexec = ["time", "--verbose", "-o", "%s" % fname_time,
-              tool, case.sol_file, case.contract, case.fun, "%i" % case.ds, "%s" % opts.timeout]
+              tool, case.sol_file, case.contract, case.fun,
+              "%i" % case.ds, "%s" % opts.timeout]
     toexec.extend(extra_opts)
     print("Running: %s" % (" ".join(toexec)))
     res = subprocess.run(toexec, capture_output=True, encoding="utf-8")
@@ -363,6 +368,9 @@ def set_up_parser() -> optparse.OptionParser:
 
     parser.add_option("--limit", dest="limit", type=int, default=100000,
                       help="Max number of cases to run. Default: %default")
+
+    parser.add_option("--norebuild", dest="norebuild", default=False,
+                      action="store_true", help="Don't rebuild with forge")
 
     return parser
 

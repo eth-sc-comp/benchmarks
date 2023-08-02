@@ -21,10 +21,11 @@
 
   nixConfig = {
     extra-substituters = [ "https://k-framework.cachix.org" ];
+    trusted-substituters = [ "https://k-framework.cachix.org" ];
     extra-trusted-public-keys = [ "k-framework.cachix.org-1:jeyMXB2h28gpNRjuVkehg+zLj62ma1RnyyopA/20yFE=" ];
   };
 
-  outputs = { self, nixpkgs, flake-utils, hevm, foundry, echidna, halmos-src, doalarm-src }:
+  outputs = { self, nixpkgs, flake-utils, hevm, kevm, foundry, echidna, halmos-src, doalarm-src }:
     flake-utils.lib.eachDefaultSystem (system:
       let
         pkgs = nixpkgs.legacyPackages.${system};

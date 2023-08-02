@@ -5,8 +5,8 @@
     flake-utils.url = "github:numtide/flake-utils";
     nixpkgs.url = "github:nixos/nixpkgs";
 
-    hevm.url = "github:ethereum/hevm";
-    # kevm.url = "github:runtimeverification/evm-semantics";
+    hevm.url = "github:ethereum/hevm/";
+    kevm.url = "github:runtimeverification/evm-semantics";
     foundry.url = "github:shazow/foundry.nix/monthly";
     echidna.url = "github:crytic/echidna";
     halmos-src = {
@@ -58,7 +58,7 @@
             # tools
             halmos
             hevm.packages.${system}.default
-            # kevm.packages.${system}.default
+            kevm.packages.${system}.default
             echidna.packages.${system}.default
             foundry.defaultPackage.${system}
             pkgs.solc

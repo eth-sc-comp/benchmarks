@@ -9,6 +9,20 @@ consume Solidity, Yul, or EVM bytecode.
 The benchmarks in this repo should be useful to developers of all kinds of
 tools, including fuzzers, static analyzers, and symbolic execution engines.
 
+### Quick Start Guide
+
+Install nix (see [here](https://nixos.org/download.html)). Then:
+
+```
+# optional, but will make subsequent steps significantly faster
+sudo nix-shell -p cachix --command "cachix use k-framework"
+nix develop   # this may take some time
+./bench.py
+./gen_graphs.py
+cd graphs
+```
+
+You can look at the graphs under the folder `graphs`
 
 ## Using This Repository
 
@@ -17,20 +31,15 @@ all tools required to run the benchmarks. If you want to add a new tool then
 you need to extend the `flake.nix` so that this tool is present in the
 `devShell`.
 
-To enter the environment, run `nix develop`. If it's your first time running
-this command you will be prompted to ask if you want to allow changes to the
-configuration settings for `extra-substituters` and `extra-trusted-public-keys`.
-If you accept these changes the runtime verification binary cache will be used
-when building `kevm`. This should significantly speed up the time it takes to
-prepare the environment.
+To enter the environment, run `nix develop`. Once you have a working shell, you
+can run `python bench.py` to execute the benchmarks. The results are collected
+in `results.db` sqlite3 database and the csv and json files
+`results-[timestamp].csv/json`. You can view these files using standard tools
+such as libreoffice, Excel, jq, etc.
 
-Once you have a working shell, you can run `python bench.py` to execute the
-benchmarks. The results are collected in `results.db` sqlite3 database and the
-csv and json files `results-[timestamp].csv/json`.
-
-To generate graphs, run `python gen_graph.py`.  For example, you can
+To generate graphs, run `python gen_graph.py`.  Then, you can
 look at the cumulative distribution function (CDF) graph to get an overview.
-Here, the different tools's performances are displayed, with X axis showing
+Here, the different tools' performances are displayed, with X axis showing
 time, and the Y axis showing the number of problems solved within that time
 frame. Typically, a tool is be better when it solves more instances (i.e.
 higher on the Y axis) while being faster (i.e. more to the left on the X axis)
@@ -108,11 +117,10 @@ Your main shell script should output:
 - "unsafe": if the contract contains at least one reachable assertion violation
 - "unknown": if the tool was unable to determine whether a reachable assertion violation is present
 
-Before executing the benchmarks, either `forge build` or `python crytic compile`
-(configurable in bench.py) is invoked on all Solidity files in the repository,
-and tools that operate on EVM bytecode can read the compiled bytecode directly
-from the respective build outputs.
+Before executing the benchmarks, `forge build` is invoked on all Solidity files
+in the repository, and tools that operate on EVM bytecode can read the compiled
+bytecode directly from the respective build outputs.
 
 Check out the examples for `hevm` and `halmos` in the repository for examples.
-Note that in order for others to run your tool, it
-needs to be added to `flake.nix`.
+Note that in order for others to run your tool, it needs to be added to
+`flake.nix`.

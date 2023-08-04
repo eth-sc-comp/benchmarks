@@ -79,7 +79,7 @@ def gen_comparative_graphs() -> None:
             else:
                 assert False
 
-            f.write("set output \""+fname+"\"\n")
+            f.write("set output \"graphs/"+fname+"\"\n")
             f.write("set notitle\n")
             f.write("set nokey\n")
             f.write("set logscale x\n")
@@ -121,7 +121,7 @@ def gen_comparative_graphs() -> None:
             os.system("rm -f \"%s\"" % fname_gnuplot)
             for t in ["eps", "png"]:
                 name = genplot(t)
-                print("generating graph: %s" % name)
+                print("Generating graph: graphs/%s" % name)
             os.system("gnuplot "+fname_gnuplot)
             os.unlink(fname_gnuplot)
 
@@ -144,7 +144,7 @@ def gen_cdf_graph() -> None:
             else:
                 assert False
 
-            f.write("set output \"cdf.%s\"\n" % t)
+            f.write("set output \"graphs/cdf.%s\"\n" % t)
             f.write("set title \"Solvers\"\n")
             f.write("set notitle\n")
             f.write("set key bottom right\n")
@@ -166,8 +166,9 @@ def gen_cdf_graph() -> None:
     for fname, _, _ in cdf_files:
         os.unlink(fname)
 
-    print("graph generated: cdf.eps")
-    print("graph generated: cdf.png")
+    print("graph generated: graphs/cdf.eps")
+    print("graph generated: graphs/cdf.png")
+
 
 def check_all_same_tout() -> None:
     with sqlite3.connect("results.db") as cur:
@@ -176,8 +177,8 @@ def check_all_same_tout() -> None:
         from results
         group by tout""")
         touts = []
-        for l in ret:
-            touts.append(l[0])
+        for line in ret:
+            touts.append(line[0])
 
     if len(touts) > 1:
         print("ERROR. Some systems were ran with differing timeouts: ")
@@ -240,8 +241,8 @@ def gen_boxgraphs() -> None:
                 f.write("set term postscript eps color lw 1 \"Helvetica\" 6 size 8,3\n")
             elif t == "png":
                 f.write("set term pngcairo font \"Arial,9\" size 1800,900\n")
-            f.write("set output \"boxchart.{t}\"\n".format(t=t))
-            print("Generating boxchart.{t}".format(t=t))
+            f.write("set output \"graphs/boxchart.{t}\"\n".format(t=t))
+            print("Generating graphs/boxchart.{t}".format(t=t))
             f.write("set boxwidth {w}\n".format(w=str(w)))
             f.write("set style fill solid\n")
             f.write("set xtics rotate by -45\n")
@@ -277,7 +278,7 @@ def main() -> None:
         os.mkdir("graphs")
     except FileExistsError:
         pass
-    check_all_same_tout();
+    check_all_same_tout()
     gen_cdf_graph()
     gen_comparative_graphs()
     gen_boxgraphs()

@@ -12,7 +12,6 @@ from typing import Literal
 import optparse
 from time import gmtime, strftime
 import csv
-from crytic_compile import CryticCompile, InvalidCompilation
 
 
 def recreate_out() -> None:
@@ -25,23 +24,17 @@ def recreate_out() -> None:
 
 def build_forge() -> None:
     print("Building with forge...")
-    recreate_out()
-    ret = subprocess.run(["forge", "build", "--use", opts.solc_version], capture_output=True)
-    if ret.returncode != 0:
-        print("Forge returned error(s)")
-        print(printable_output(ret.stderr))
-        exit(-1)
-    ret.check_returncode()
+    if not opts.norebuild:
+        recreate_out()
+        ret = subprocess.run(["forge", "build", "--extra-output",
+                              "storageLayout", "metadata", "--use",
+                              opts.solc_version], capture_output=True)
+        if ret.returncode != 0:
+            print("Forge returned error(s)")
+            print(printable_output(ret.stderr))
+            exit(-1)
+        ret.check_returncode()
 
-def build_crytic() -> None:
-    print("Building with crytic...")
-    recreate_out()
-    try:
-        pwd = os.getcwd()
-        CryticCompile(target=pwd)
-    except InvalidCompilation as e:
-        print(f'Parse error: {e}')
-        exit(-1)
 
 tools = {
     "hevm-cvc5": {
@@ -60,9 +53,11 @@ tools = {
         "call": "tools/halmos.sh",
         "version": "tools/halmos_version.sh",
         "extra_opts": [],
-        "build": build_crytic
+        "build": build_forge
     }
 }
+
+
 global opts
 
 
@@ -71,14 +66,16 @@ def printable_output(out):
     return ("%s" % out).replace('\\n', '\n').replace('\\t', '\t')
 
 
-# get all functions that start with 'prove'
-def get_prove_funcs(js) -> list[str]:
+# get all functions that start with 'prove' or 'check'
+def get_relevant_funcs(js) -> list[str]:
     ret = []
     for i in range(len(js["abi"])):
         if "name" not in js["abi"][i]:
             continue
         fun = js["abi"][i]["name"]
         if re.match("^prove", fun):
+            ret.append(fun)
+        if re.match("^check", fun):
             ret.append(fun)
 
     return ret
@@ -163,7 +160,7 @@ def gather_cases() -> list[Case]:
                     continue
                 ds_test = determine_dstest(sol_file)
                 if ds_test:
-                    for f in get_prove_funcs(js):
+                    for f in get_relevant_funcs(js):
                         cases.append(Case(c, json_fname, sol_file, True, f))
                 else:
                     cases.append(Case(c, json_fname, sol_file, False, ""))
@@ -202,7 +199,8 @@ def last_line_in_file(fname: str) -> str:
 # Result from a solver
 class Result:
     def __init__(self, result: str, mem_used_MB: float|None, exit_status: int|None,
-                 perc_CPU: int|None, t: float|None, tout: float|None, case: Case, out:str):
+                 perc_CPU: int|None, t: float|None, tout: float|None,
+                 case: Case, out:str):
         self.result = result
         self.exit_status = exit_status
         self.mem_used_MB = mem_used_MB
@@ -220,12 +218,10 @@ def execute_case(tool: str, extra_opts: list[str], case: Case) -> Result:
     result = None
     res = None
     before = time.time_ns()
-    fname_runlim = unique_file("output")
     fname_time = unique_file("output")
-    toexec = ["time", "--verbose", "-o", "%s" % fname_time, "runlim",
-              "--real-time-limit=%s" % opts.timeout, "--output-file=%s" % fname_runlim,
-              "--kill-delay=10",
-              tool, case.sol_file, case.contract, case.fun, "%i" % case.ds]
+    toexec = ["time", "--verbose", "-o", "%s" % fname_time,
+              tool, case.sol_file, case.contract, case.fun,
+              "%i" % case.ds, "%s" % opts.timeout]
     toexec.extend(extra_opts)
     print("Running: %s" % (" ".join(toexec)))
     res = subprocess.run(toexec, capture_output=True, encoding="utf-8")
@@ -235,18 +231,12 @@ def execute_case(tool: str, extra_opts: list[str], case: Case) -> Result:
     exit_status = None
     perc_CPU = None
 
-    # parse runlim output
-    with open(fname_runlim, 'r') as f:
-        for l in f:
-            # if opts.verbose: print("runlim output line: ", l.strip())
-            if re.match("^.runlim. status:.*out of time", l):
-                out_of_time = True
     if opts.verbose:
-            print("Res stdout is:", res.stdout)
-            print("Res stderr is:", res.stderr)
-    for l in res.stdout.split("\n"):
-        l = l.strip()
-        match = re.match("result: (.*)$", l)
+        print("Res stdout is:", res.stdout)
+        print("Res stderr is:", res.stderr)
+    for line in res.stdout.split("\n"):
+        line = line.strip()
+        match = re.match("result: (.*)$", line)
         if match:
             result = match.group(1)
     time_taken = (after - before) / 1_000_000_000
@@ -255,22 +245,21 @@ def execute_case(tool: str, extra_opts: list[str], case: Case) -> Result:
 
     # parse `time --verbose` output
     with open(fname_time, 'r') as f:
-        for l in f:
-            l = l.strip()
-            match = re.match(r"Maximum resident set size .kbytes.: (.*)", l)
+        for line in f:
+            line = line.strip()
+            match = re.match(r"Maximum resident set size .kbytes.: (.*)", line)
             if match:
                 mem_used_MB = int(match.group(1))/1000
 
-            match = re.match(r"Percent of CPU this job got: (.*)%", l)
+            match = re.match(r"Percent of CPU this job got: (.*)%", line)
             if match:
                 perc_CPU = int(match.group(1))
 
-            match = re.match(r"Exit status:[ ]*(.*)[ ]*$", l)
+            match = re.match(r"Exit status:[ ]*(.*)[ ]*$", line)
             if match:
                 exit_status = int(match.group(1))
 
     assert result == "safe" or result == "unsafe" or result == "unknown"
-    os.unlink(fname_runlim)
     os.unlink(fname_time)
     if opts.verbose:
         print("Result is: ", result)
@@ -371,7 +360,7 @@ def set_up_parser() -> optparse.OptionParser:
                       dest="verbose", help="More verbose output. Default: %default")
 
     parser.add_option("-s", dest="seed", type=int, default=1,
-                      help="Seed for random numbers for reproducibility. Default: %default")
+                      help="Seed for random numbers. Default: %default")
 
     parser.add_option("--solcv", dest="solc_version", type=str, default="0.8.19",
                       help="solc version to use to compile contracts")
@@ -381,6 +370,9 @@ def set_up_parser() -> optparse.OptionParser:
 
     parser.add_option("--limit", dest="limit", type=int, default=100000,
                       help="Max number of cases to run. Default: %default")
+
+    parser.add_option("--norebuild", dest="norebuild", default=False,
+                      action="store_true", help="Don't rebuild with forge")
 
     return parser
 

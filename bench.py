@@ -360,7 +360,7 @@ def set_up_parser() -> optparse.OptionParser:
                       dest="verbose", help="More verbose output. Default: %default")
 
     parser.add_option("-s", dest="seed", type=int, default=1,
-                      help="Seed for random numbers for reproducibility. Default: %default")
+                      help="Seed for random numbers. Default: %default")
 
     parser.add_option("--solcv", dest="solc_version", type=str, default="0.8.19",
                       help="solc version to use to compile contracts")

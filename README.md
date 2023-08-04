@@ -15,7 +15,7 @@ Install nix (see [here](https://nixos.org/download.html)). Then:
 
 ```
 sudo nix-shell -p cachix --command "cachix use k-framework"
-nix develop   # this make take some time
+nix develop   # this may take some time
 ./bench.py
 ./gen_graphs.py
 cd graphs

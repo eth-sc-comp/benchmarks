@@ -410,6 +410,9 @@ def main() -> None:
     opts.timestamp = strftime("%Y-%m-%d-%H:%M", gmtime())
     tools_used = get_tools_used()
     print("Will run tool(s): %s" % ", ".join([t for t, _ in tools_used.items()]))
+    if len(tools_used) == 0:
+        print("ERROR: You selected no tools to run. Exiting.")
+        exit(-1)
 
     cases = gather_cases()
     print("cases gathered: ")

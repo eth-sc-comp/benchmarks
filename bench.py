@@ -26,7 +26,9 @@ def build_forge() -> None:
     print("Building with forge...")
     if not opts.norebuild:
         recreate_out()
-        ret = subprocess.run(["forge", "build", "--use", opts.solc_version], capture_output=True)
+        ret = subprocess.run(["forge", "build", "--extra-output",
+                              "storageLayout", "metadata", "--use",
+                              opts.solc_version], capture_output=True)
         if ret.returncode != 0:
             print("Forge returned error(s)")
             print(printable_output(ret.stderr))

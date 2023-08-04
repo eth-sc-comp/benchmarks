@@ -5,7 +5,7 @@
     flake-utils.url = "github:numtide/flake-utils";
     nixpkgs.url = "github:nixos/nixpkgs";
 
-    hevm.url = "github:ethereum/hevm/";
+    hevm.url = "github:ethereum/hevm";
     kevm.url = "github:runtimeverification/evm-semantics";
     foundry.url = "github:shazow/foundry.nix/monthly";
     echidna.url = "github:crytic/echidna";
@@ -17,12 +17,6 @@
       url = "github:msooseth/doalarm";
       flake = false;
     };
-  };
-
-  nixConfig = {
-    extra-substituters = [ "https://k-framework.cachix.org" ];
-    trusted-substituters = [ "https://k-framework.cachix.org" ];
-    extra-trusted-public-keys = [ "k-framework.cachix.org-1:jeyMXB2h28gpNRjuVkehg+zLj62ma1RnyyopA/20yFE=" ];
   };
 
   outputs = { self, nixpkgs, flake-utils, hevm, kevm, foundry, echidna, halmos-src, doalarm-src }:

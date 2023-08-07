@@ -159,11 +159,8 @@ def gather_cases() -> list[Case]:
                 if sol_file.startswith("src/common/") or sol_file.startswith("lib/"):
                     continue
                 ds_test = determine_dstest(sol_file)
-                if ds_test:
-                    for f in get_relevant_funcs(js):
-                        cases.append(Case(c, json_fname, sol_file, True, f))
-                else:
-                    cases.append(Case(c, json_fname, sol_file, False, ""))
+                for f in get_relevant_funcs(js):
+                   cases.append(Case(c, json_fname, sol_file, ds_test, f))
     return cases
 
 

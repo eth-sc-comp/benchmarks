@@ -23,8 +23,8 @@ def recreate_out() -> None:
 
 
 def build_forge() -> None:
-    print("Building with forge...")
     if not opts.norebuild:
+        print("Building with forge...")
         recreate_out()
         ret = subprocess.run(["forge", "build", "--extra-output",
                               "storageLayout", "metadata", "--use",
@@ -116,19 +116,15 @@ class Case:
         self.expected = determine_expected(sol_file)
 
     def get_name(self) -> str:
-        if self.ds:
-            return "%s:%s:%s" % (self.sol_file, self.contract, self.fun)
-        else:
-            return "%s:%s" % (self.sol_file, self.contract)
+        return "%s:%s:%s" % (self.sol_file, self.contract, self.fun)
 
     def __str__(self):
         out = ""
-        out += "Contract: %s, " % self.contract
-        if self.ds:
-            out += "Function: %s, " % self.fun
-        out += "JSON filename: %s, " % self.json_fname
-        out += "Is DS?: %s, " % self.ds
-        out += "Expected result: %s" % self.expected
+        out += "Contr: %-25s " % self.contract
+        out += "Fun: %-20s " % self.fun
+        out += "DS: %s " % self.ds
+        out += "Safe: %s" % self.expected
+        # out += "JSON filename: %s " % self.json_fname
         return out
 
 
@@ -160,7 +156,8 @@ def gather_cases() -> list[Case]:
                     continue
                 ds_test = determine_dstest(sol_file)
                 for f in get_relevant_funcs(js):
-                   cases.append(Case(c, json_fname, sol_file, ds_test, f))
+                    if re.match(opts.testpattern, "%s:%s" % (c, f)):
+                        cases.append(Case(c, json_fname, sol_file, ds_test, f))
     return cases
 
 
@@ -359,6 +356,9 @@ def set_up_parser() -> optparse.OptionParser:
     parser.add_option("-s", dest="seed", type=int, default=1,
                       help="Seed for random numbers. Default: %default")
 
+    parser.add_option("--tests", dest="testpattern", type=str, default=".*:.*",
+                      help="Test pattern regexp in the format 'contract:function'. Default: %default")
+
     parser.add_option("--solcv", dest="solc_version", type=str, default="0.8.19",
                       help="solc version to use to compile contracts")
 
@@ -384,7 +384,8 @@ def main() -> None:
     random.seed(opts.seed)
     opts.timestamp = strftime("%Y-%m-%d-%H:%M", gmtime())
     cases = gather_cases()
-    print("cases gathered: ")
+    cases.sort(key=lambda contr: contr.get_name())
+    print("Cases gathered: ")
     for c in cases:
         print("-> %s" % c)
     random.shuffle(cases)

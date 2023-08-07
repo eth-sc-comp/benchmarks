@@ -12,7 +12,7 @@ contract Withdraw {
     }
 }
 
-contract SolidityTest is DSTest {
+contract SolidityTestFail is DSTest {
     ERC20 token;
     Withdraw withdraw;
 

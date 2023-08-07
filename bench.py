@@ -66,17 +66,25 @@ def printable_output(out):
     return ("%s" % out).replace('\\n', '\n').replace('\\t', '\t')
 
 
+def get_sigature(fun: str, inputs: dict) -> str:
+    ret = []
+    for e in inputs:
+        ret.append(e["internalType"])
+
+    args = ",".join(ret)
+    return "%s(%s)" % (fun, args)
+
+
 # get all functions that start with 'prove' or 'check'
-def get_relevant_funcs(js) -> list[str]:
+def get_relevant_funcs(js) -> list[(str,str)]:
     ret = []
     for i in range(len(js["abi"])):
         if "name" not in js["abi"][i]:
             continue
         fun = js["abi"][i]["name"]
-        if re.match("^prove", fun):
-            ret.append(fun)
-        if re.match("^check", fun):
-            ret.append(fun)
+        sig = get_sigature(fun, js["abi"][i]["inputs"])
+        if re.match("^prove", fun) or re.match("^check", fun):
+            ret.append((fun, sig))
 
     return ret
 
@@ -107,12 +115,14 @@ def determine_expected(sol_file: str) -> Literal["safe"] | Literal["unsafe"]:
 
 # A case to solve by the solvers
 class Case:
-    def __init__(self, contract: str, json_fname: str, sol_file: str, ds: bool, fun: str):
+    def __init__(self, contract: str, json_fname: str, sol_file: str,
+                 ds: bool, fun: str, sig: str):
         self.contract = contract
         self.json_fname = json_fname
         self.sol_file = sol_file
         self.ds = ds
         self.fun = fun
+        self.sig = sig
         self.expected = determine_expected(sol_file)
 
     def get_name(self) -> str:
@@ -122,6 +132,7 @@ class Case:
         out = ""
         out += "Contr: %-25s " % self.contract
         out += "Fun: %-20s " % self.fun
+        out += "sig: %-20s " % self.sig
         out += "DS: %s " % self.ds
         out += "Safe: %s" % self.expected
         # out += "JSON filename: %s " % self.json_fname
@@ -155,9 +166,10 @@ def gather_cases() -> list[Case]:
                 if sol_file.startswith("src/common/") or sol_file.startswith("lib/"):
                     continue
                 ds_test = determine_dstest(sol_file)
-                for f in get_relevant_funcs(js):
-                    if re.match(opts.testpattern, "%s:%s" % (c, f)):
-                        cases.append(Case(c, json_fname, sol_file, ds_test, f))
+                for f_and_s in get_relevant_funcs(js):
+                    if re.match(opts.testpattern, "%s:%s" % (c, f_and_s[0])):
+                        cases.append(Case(c, json_fname, sol_file, ds_test,
+                                          f_and_s[0], f_and_s[1]))
     return cases
 
 
@@ -214,7 +226,7 @@ def execute_case(tool: str, extra_opts: list[str], case: Case) -> Result:
     before = time.time_ns()
     fname_time = unique_file("output")
     toexec = ["time", "--verbose", "-o", "%s" % fname_time,
-              tool, case.sol_file, case.contract, case.fun,
+              tool, case.sol_file, case.contract, case.fun, case.sig,
               "%i" % case.ds, "%s" % opts.timeout]
     toexec.extend(extra_opts)
     print("Running: %s" % (" ".join(toexec)))

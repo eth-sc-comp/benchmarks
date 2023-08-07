@@ -335,8 +335,7 @@ def dump_results(solvers_results: dict[str, list[Result]], fname: str):
     with open("%s.json" % fname, "w") as f:
         f.write(json.dumps(solvers_results, indent=2, cls=ResultEncoder))
     with open("%s.csv" % fname, "w", newline='') as f:
-        # csvwriter = csv.writer(f, delimiter=' ', quotechar='|', quoting=csv.QUOTE_MINIMAL)
-        fieldnames = ["solver", "solc_version", "name", "result", "correct", "t", "timeout", "memMB", "exit_status", "output"]
+        fieldnames = ["solver", "solc_version", "name", "fun", "sig", "result", "correct", "t", "timeout", "memMB", "exit_status", "output"]
         writer = csv.DictWriter(f, fieldnames=fieldnames)
         writer.writeheader()
         for solver, results in solvers_results.items():
@@ -346,7 +345,8 @@ def dump_results(solvers_results: dict[str, list[Result]], fname: str):
                     corr_as_sqlite = (int)(r.result == r.case.expected)
                 writer.writerow({
                     "solver": solver, "solc_version": opts.solc_version,
-                    "name": r.case.get_name(), "result": r.result,
+                    "name": r.case.get_name(), "fun": r.case.fun,
+                    "sig": r.case.sig, "result": r.result,
                     "correct": corr_as_sqlite, "t": empty_if_none(r.t),
                     "timeout": r.tout, "memMB": empty_if_none(r.mem_used_MB),
                     "exit_status": empty_if_none(r.exit_status), "output": r.out})

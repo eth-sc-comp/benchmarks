@@ -36,7 +36,7 @@ def build_forge() -> None:
         ret.check_returncode()
 
 
-tools = {
+available_tools = {
     "hevm-cvc5": {
         "call": "tools/hevm.sh",
         "version": "tools/hevm_version.sh",
@@ -279,7 +279,7 @@ def get_version(script: str) -> str:
 
 # executes all tests contained in the argument cases mapping with all tools and
 # builds the result dict
-def run_all_tests(cases: list[Case]) -> dict[str, list[Result]]:
+def run_all_tests(tools, cases: list[Case]) -> dict[str, list[Result]]:
     results: dict[str, list[Result]] = {}
     for tool, descr in tools.items():
         descr["build"]()
@@ -362,6 +362,10 @@ def set_up_parser() -> optparse.OptionParser:
     parser.add_option("-s", dest="seed", type=int, default=1,
                       help="Seed for random numbers. Default: %default")
 
+    avail = ", ".join([t for t,_ in available_tools.items()])
+    parser.add_option("--tools", dest="tools", type=str, default="all",
+                      help="Only run these tools (comma separated list). Available tools: %s" % avail)
+
     parser.add_option("--solcv", dest="solc_version", type=str, default="0.8.19",
                       help="solc version to use to compile contracts")
 
@@ -377,6 +381,24 @@ def set_up_parser() -> optparse.OptionParser:
     return parser
 
 
+def get_tools_used():
+    ret = {}
+    for tool in opts.tools.split(","):
+        tool=tool.strip()
+        if tool == "all":
+            ret = available_tools
+            break
+        if tool == "":
+            continue
+        if tool not in available_tools:
+            print("ERROR: tool you specified, '%s' is not known." % tool)
+            print("Known tools: %s" % ", ".join([t for t, _ in available_tools.items()]))
+            exit(-1)
+        else:
+            ret[tool] = available_tools[tool]
+
+    return ret
+
 def main() -> None:
     parser = set_up_parser()
     global opts
@@ -386,12 +408,18 @@ def main() -> None:
         exit(-1)
     random.seed(opts.seed)
     opts.timestamp = strftime("%Y-%m-%d-%H:%M", gmtime())
+    tools_used = get_tools_used()
+    print("Will run tool(s): %s" % ", ".join([t for t, _ in tools_used.items()]))
+    if len(tools_used) == 0:
+        print("ERROR: You selected no tools to run. Exiting.")
+        exit(-1)
+
     cases = gather_cases()
     print("cases gathered: ")
     for c in cases:
         print("-> %s" % c)
     random.shuffle(cases)
-    solvers_results = run_all_tests(cases[:opts.limit])
+    solvers_results = run_all_tests(tools_used, cases[:opts.limit])
     results_fname = "results-tstamp-%s" % opts.timestamp
     dump_results(solvers_results, results_fname)
     os.system("cp %s.csv results-latest.csv" % results_fname)

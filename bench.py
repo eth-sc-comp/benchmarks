@@ -385,7 +385,7 @@ def main() -> None:
     opts.timestamp = strftime("%Y-%m-%d-%H:%M", gmtime())
     cases = gather_cases()
     cases.sort(key=lambda contr: contr.get_name())
-    print("Cases gathered: ")
+    print("Cases gathered given test pattern '%s': " % opts.testpattern)
     for c in cases:
         print("-> %s" % c)
     random.shuffle(cases)

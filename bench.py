@@ -70,7 +70,7 @@ def get_signature(fun: str, inputs: dict) -> str:
     ret = [e["internalType"] for e in inputs]
 
     args = ",".join(ret)
-    return "%s(%s)" % (fun, args)
+    return f"{fun}({args})"
 
 
 # get all functions that start with 'prove' or 'check'

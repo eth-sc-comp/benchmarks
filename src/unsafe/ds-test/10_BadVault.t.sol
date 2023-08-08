@@ -166,9 +166,6 @@ contract BadVaultTest is Test {
         assert(attacker.balance <= STARTING_BALANCE);
     }
 
-    // running `halmos --function test_BadVault_solution`
-    // gives the expected `Counterexample: ∅`
-    //
     // running `forge test --match-test test_BadVault_solution -vvv` confirms the attack trace:                                                                                                                                                                            took 6s Node system at 18:00:43
     //   deposit 0x0000000000000000000000000000000000000001 1000000000000000000
     //   deposit 0x0000000000000000000000000000000000000002 1000000000000000000

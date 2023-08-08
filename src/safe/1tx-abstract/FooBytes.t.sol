@@ -14,25 +14,9 @@ contract FooBytesTest is Test {
     /// @dev Attempts to find a combination of `x` and `y` that will cause
     /// this test to revert. In order to do so, both `x` and `y` should
     /// have `0x69` in their lowest byte.
-    function testFuzz_cracked(bytes32 x, bytes32 y) public {
-        a.foo(x);
-        a.bar(y);
-        a.revertIfCracked();
-    }
-
     function proveFuzz_cracked(bytes32 x, bytes32 y) public {
         a.foo(x);
         a.bar(y);
         a.revertIfCracked();
     }
-
-    /*
-    function testFuzz_cracked_k(bytes32 x, bytes32 y) public {
-        setUp();
-
-        a.foo(x);
-        a.bar(y);
-        a.revertIfCracked();
-    }
-    */
 }

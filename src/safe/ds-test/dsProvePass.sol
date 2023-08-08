@@ -10,7 +10,7 @@ contract ConstructorArg {
     }
 }
 
-contract SolidityTest is DSTest {
+contract SolidityTestPass is DSTest {
     ERC20 token;
 
     function setUp() public {
@@ -29,7 +29,7 @@ contract SolidityTest is DSTest {
         assert(supply == actual);
     }
 
-    function prove_constructorArgs(address b) public {
+    function prove_constrArgs(address b) public {
         ConstructorArg c = new ConstructorArg(b);
         assert(b == c.a());
     }

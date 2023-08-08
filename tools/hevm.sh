@@ -5,6 +5,7 @@ set -x
 contract_file="$1" ; shift
 contract_name="$1" ; shift
 fun_name="$1"; shift
+sig="$1"; shift
 ds_test="$1"; shift
 tout="$1"; shift
 
@@ -13,7 +14,7 @@ source "$SCRIPT_DIR/utils.sh"
 
 if [[ "${ds_test}" == "0" ]]; then
     code=$(get_runtime_bytecode "${contract_file}" "${contract_name}")
-    out=$(doalarm -t real "${tout}" hevm symbolic --code "${code}" "$@")
+    out=$(doalarm -t real "${tout}" hevm symbolic --code "${code}" --sig "${sig}" "$@")
 elif [[ "${ds_test}" == "1" ]]; then
     out=$(doalarm -t real "${tout}" hevm test --match "${contract_file}.*${fun_name}" "$@")
 else
@@ -26,6 +27,11 @@ set +x
 if [[ $out =~ "[FAIL]" ]]; then
   echo "result: unsafe"
   exit 0
+fi
+
+if [[ $out =~ "hevm was only able to partially explore the given contract" ]]; then
+    echo "unknown"
+    exit 0
 fi
 
 if [[ $out =~ "[PASS]" ]]; then

@@ -2,7 +2,7 @@
 
 pragma solidity ^0.8.17;
 
-contract MyContract {
+contract MyContractDiv {
   function prove_fun(uint256 val) external pure {
     uint out;
     assembly {

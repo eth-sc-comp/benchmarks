@@ -5,6 +5,7 @@ set -x
 contract_file="$1" ; shift
 contract_name="$1" ; shift
 fun_name="$1"; shift
+sig="$1"; shift
 ds_test="$1"; shift
 tout="$1"; shift
 

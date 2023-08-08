@@ -2,7 +2,7 @@
 
 pragma solidity ^0.8.17;
 
-contract MyContract {
+contract MyContractMulMod {
   function proveFun(uint8 a, uint8 b, uint8 c) external pure {
     require(a < 4);
     require(b < 4);

@@ -3,7 +3,7 @@ pragma solidity ^0.8.19;
 import "ds-test/test.sol";
 import "src/common/erc20.sol";
 
-contract SolidityTest is DSTest {
+contract SolidityTestFail2 is DSTest {
     ERC20 token;
 
     function setUp() public {

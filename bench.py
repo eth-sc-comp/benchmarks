@@ -23,8 +23,8 @@ def recreate_out() -> None:
 
 
 def build_forge() -> None:
-    print("Building with forge...")
     if not opts.norebuild:
+        print("Building with forge...")
         recreate_out()
         ret = subprocess.run(["forge", "build", "--extra-output",
                               "storageLayout", "metadata", "--use",
@@ -66,17 +66,23 @@ def printable_output(out):
     return ("%s" % out).replace('\\n', '\n').replace('\\t', '\t')
 
 
+def get_signature(fun: str, inputs) -> str:
+    ret = [e["internalType"] for e in inputs]
+
+    args = ",".join(ret)
+    return f"{fun}({args})"
+
+
 # get all functions that start with 'prove' or 'check'
-def get_relevant_funcs(js) -> list[str]:
+def get_relevant_funcs(js) -> list[(str,str)]:
     ret = []
     for i in range(len(js["abi"])):
         if "name" not in js["abi"][i]:
             continue
         fun = js["abi"][i]["name"]
-        if re.match("^prove", fun):
-            ret.append(fun)
-        if re.match("^check", fun):
-            ret.append(fun)
+        sig = get_signature(fun, js["abi"][i]["inputs"])
+        if re.match("^prove", fun) or re.match("^check", fun):
+            ret.append((fun, sig))
 
     return ret
 
@@ -107,28 +113,27 @@ def determine_expected(sol_file: str) -> Literal["safe"] | Literal["unsafe"]:
 
 # A case to solve by the solvers
 class Case:
-    def __init__(self, contract: str, json_fname: str, sol_file: str, ds: bool, fun: str):
+    def __init__(self, contract: str, json_fname: str, sol_file: str,
+                 ds: bool, fun: str, sig: str):
         self.contract = contract
         self.json_fname = json_fname
         self.sol_file = sol_file
         self.ds = ds
         self.fun = fun
+        self.sig = sig
         self.expected = determine_expected(sol_file)
 
     def get_name(self) -> str:
-        if self.ds:
-            return "%s:%s:%s" % (self.sol_file, self.contract, self.fun)
-        else:
-            return "%s:%s" % (self.sol_file, self.contract)
+        return "%s:%s:%s" % (self.sol_file, self.contract, self.fun)
 
     def __str__(self):
         out = ""
-        out += "Contract: %s, " % self.contract
-        if self.ds:
-            out += "Function: %s, " % self.fun
-        out += "JSON filename: %s, " % self.json_fname
-        out += "Is DS?: %s, " % self.ds
-        out += "Expected result: %s" % self.expected
+        out += "Contr: %-25s " % self.contract
+        out += "Fun: %-20s " % self.fun
+        out += "sig: %-20s " % self.sig
+        out += "DS: %s " % self.ds
+        out += "Safe: %s" % self.expected
+        # out += "JSON filename: %s " % self.json_fname
         return out
 
 
@@ -159,11 +164,10 @@ def gather_cases() -> list[Case]:
                 if sol_file.startswith("src/common/") or sol_file.startswith("lib/"):
                     continue
                 ds_test = determine_dstest(sol_file)
-                if ds_test:
-                    for f in get_relevant_funcs(js):
-                        cases.append(Case(c, json_fname, sol_file, True, f))
-                else:
-                    cases.append(Case(c, json_fname, sol_file, False, ""))
+                for f_and_s in get_relevant_funcs(js):
+                    if re.match(opts.testpattern, "%s:%s" % (c, f_and_s[0])):
+                        cases.append(Case(c, json_fname, sol_file, ds_test,
+                                          f_and_s[0], f_and_s[1]))
     return cases
 
 
@@ -220,7 +224,7 @@ def execute_case(tool: str, extra_opts: list[str], case: Case) -> Result:
     before = time.time_ns()
     fname_time = unique_file("output")
     toexec = ["time", "--verbose", "-o", "%s" % fname_time,
-              tool, case.sol_file, case.contract, case.fun,
+              tool, case.sol_file, case.contract, case.fun, case.sig,
               "%i" % case.ds, "%s" % opts.timeout]
     toexec.extend(extra_opts)
     print("Running: %s" % (" ".join(toexec)))
@@ -329,8 +333,7 @@ def dump_results(solvers_results: dict[str, list[Result]], fname: str):
     with open("%s.json" % fname, "w") as f:
         f.write(json.dumps(solvers_results, indent=2, cls=ResultEncoder))
     with open("%s.csv" % fname, "w", newline='') as f:
-        # csvwriter = csv.writer(f, delimiter=' ', quotechar='|', quoting=csv.QUOTE_MINIMAL)
-        fieldnames = ["solver", "solc_version", "name", "result", "correct", "t", "timeout", "memMB", "exit_status", "output"]
+        fieldnames = ["solver", "solc_version", "name", "fun", "sig", "result", "correct", "t", "timeout", "memMB", "exit_status", "output"]
         writer = csv.DictWriter(f, fieldnames=fieldnames)
         writer.writeheader()
         for solver, results in solvers_results.items():
@@ -340,7 +343,8 @@ def dump_results(solvers_results: dict[str, list[Result]], fname: str):
                     corr_as_sqlite = (int)(r.result == r.case.expected)
                 writer.writerow({
                     "solver": solver, "solc_version": opts.solc_version,
-                    "name": r.case.get_name(), "result": r.result,
+                    "name": r.case.get_name(), "fun": r.case.fun,
+                    "sig": r.case.sig, "result": r.result,
                     "correct": corr_as_sqlite, "t": empty_if_none(r.t),
                     "timeout": r.tout, "memMB": empty_if_none(r.mem_used_MB),
                     "exit_status": empty_if_none(r.exit_status), "output": r.out})
@@ -361,6 +365,9 @@ def set_up_parser() -> optparse.OptionParser:
 
     parser.add_option("-s", dest="seed", type=int, default=1,
                       help="Seed for random numbers. Default: %default")
+
+    parser.add_option("--tests", dest="testpattern", type=str, default=".*:.*",
+                      help="Test pattern regexp in the format 'contract:function'. Default: %default")
 
     avail = ", ".join([t for t,_ in available_tools.items()])
     parser.add_option("--tools", dest="tools", type=str, default="all",
@@ -415,7 +422,8 @@ def main() -> None:
         exit(-1)
 
     cases = gather_cases()
-    print("cases gathered: ")
+    cases.sort(key=lambda contr: contr.get_name())
+    print(f"Cases gathered given test pattern '{opts.testpattern}':")
     for c in cases:
         print("-> %s" % c)
     random.shuffle(cases)

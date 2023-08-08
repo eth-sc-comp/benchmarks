@@ -66,7 +66,7 @@ def printable_output(out):
     return ("%s" % out).replace('\\n', '\n').replace('\\t', '\t')
 
 
-def get_sigature(fun: str, inputs: dict) -> str:
+def get_signature(fun: str, inputs: dict) -> str:
     ret = []
     for e in inputs:
         ret.append(e["internalType"])

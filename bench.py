@@ -80,7 +80,7 @@ def get_relevant_funcs(js) -> list[(str,str)]:
         if "name" not in js["abi"][i]:
             continue
         fun = js["abi"][i]["name"]
-        sig = get_sigature(fun, js["abi"][i]["inputs"])
+        sig = get_signature(fun, js["abi"][i]["inputs"])
         if re.match("^prove", fun) or re.match("^check", fun):
             ret.append((fun, sig))
 

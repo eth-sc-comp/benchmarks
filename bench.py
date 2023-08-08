@@ -67,9 +67,7 @@ def printable_output(out):
 
 
 def get_signature(fun: str, inputs: dict) -> str:
-    ret = []
-    for e in inputs:
-        ret.append(e["internalType"])
+    ret = [e["internalType"] for e in inputs]
 
     args = ",".join(ret)
     return "%s(%s)" % (fun, args)

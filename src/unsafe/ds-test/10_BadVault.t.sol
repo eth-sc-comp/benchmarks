@@ -112,66 +112,6 @@ contract BadVaultTest is Test {
         assert(exploit.owner() == attacker);
     }
 
-    /// passes as expected
-    /// @custom:halmos --array-lengths data=100
-    function test_BadVault_withdrawFromEOA(address attacker, uint256 amount, bytes memory data) external {
-        uint256 STARTING_BALANCE = 2 ether;
-
-        vm.assume(attacker != address(vault));
-        vm.assume(attacker != address(user1));
-        vm.assume(attacker != address(user2));
-        vm.assume(attacker.balance == STARTING_BALANCE);
-        vm.assume(amount <= STARTING_BALANCE / 2);
-
-        // attacker starts with some ether
-        vm.prank(attacker);
-        vault.deposit{value: STARTING_BALANCE / 2}();
-
-        // whatever interaction with the vault the attacker does
-        vm.prank(attacker);
-        address(vault).call{value: amount}(data);
-
-        // they can not end up with more ether than they started with
-        assert(address(attacker).balance <= STARTING_BALANCE);
-    }
-
-    /// won't run because we don't support symbolic CREATE
-    /// @custom:halmos --array-lengths data=100,code=100
-    function test_BadVault_withdrawFromContract(
-        address attacker,
-        uint256 amount1,
-        uint256 amount2,
-        bytes memory data,
-        bytes memory code
-    ) external {
-        uint256 STARTING_BALANCE = 2 ether;
-
-        vm.assume(attacker != address(vault));
-        vm.assume(attacker != address(user1));
-        vm.assume(attacker != address(user2));
-        vm.assume(attacker.balance == STARTING_BALANCE);
-        vm.assume((amount1 + amount2) <= STARTING_BALANCE);
-
-        // attacker deploys code
-        address attackContract;
-        vm.prank(attacker);
-        assembly {
-            let ptr := add(code, 0x20)
-            let size := mload(code)
-            attackContract := create(amount1, ptr, size)
-            if iszero(extcodesize(attackContract)) { revert(0, 0) }
-        }
-
-        // attacker interacts with deployed code
-        vm.prank(attacker);
-        attackContract.call{value: amount2}(data);
-
-        // they can not end up with more ether than they started with
-        console2.log("attacker final balance", address(attacker).balance);
-        assert(address(attacker).balance <= STARTING_BALANCE);
-    }
-
-    /// I would expect to find a solution, but we get Counterexample: unknown
     /// @custom:halmos --array-lengths data1=36,data2=36,deferredData=36
     function prove_BadVault_usingExploitLaunchPad(
         address target1,

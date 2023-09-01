@@ -253,17 +253,14 @@ def gen_boxgraphs() -> None:
             mid = False
             for i in range(len(all_solvers)):
                 solver = all_solvers[i]
-                if i < len(all_solvers)/2:
-                    f.write("\"{fname_boxdata}\" using ($1-{offs}):{at} with boxes t \"{solver}\"".format(
-                        fname_boxdata=fname_boxdata, solver=solver, offs = (0.1*(half-i)), at=i+3))
+                if i == 0: xtic = ":xtic(2)"
+                else: xtic = ""
+                if i <= len(all_solvers)/2:
+                    f.write("\"{fname_boxdata}\" using ($1-{offs}):{at}{xtic} with boxes t \"{solver}\"".format(
+                        fname_boxdata=fname_boxdata, solver=solver, offs = (0.1*(half-i)), at=i+3, xtic=xtic))
                 else:
-                    if not mid:
-                        mid = True
-                        f.write("\"{fname_boxdata}\" using 1:{at}:xtic(2) with boxes t \"{solver}\"".format(
-                            fname_boxdata=fname_boxdata, solver=solver, offs = (0.1*(i-half)), at=i+3))
-                    else:
-                        f.write("\"{fname_boxdata}\" using ($1+{offs}):{at} with boxes t \"{solver}\"".format(
-                            fname_boxdata=fname_boxdata, solver=solver, offs = (0.1*(i-half)), at=i+3))
+                    f.write("\"{fname_boxdata}\" using ($1+{offs}):{at}:xtic(2) with boxes t \"{solver}\"".format(
+                        fname_boxdata=fname_boxdata, solver=solver, offs = (0.1*(i-half)), at=i+3))
 
                 if i < len(all_solvers)-1:
                     f.write(", \\\n")

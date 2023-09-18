@@ -8,6 +8,9 @@ fun_name="$1"; shift
 sig="$1"; shift
 ds_test="$1"; shift
 tout="$1"; shift
+memout="$1"; shift
+
+ulimit -m "$memout"
 
 out=$(doalarm -t real "${tout}" halmos --function "${fun_name}" --contract "${contract_name}" "$@" 2>&1)
 

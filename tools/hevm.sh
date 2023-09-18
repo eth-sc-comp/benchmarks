@@ -8,6 +8,9 @@ fun_name="$1"; shift
 sig="$1"; shift
 ds_test="$1"; shift
 tout="$1"; shift
+memout="$1"; shift
+
+ulimit -m "$memout"
 
 SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 source "$SCRIPT_DIR/utils.sh"

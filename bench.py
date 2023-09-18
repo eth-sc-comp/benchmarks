@@ -49,6 +49,18 @@ available_tools = {
         "extra_opts": ["--solver","z3"],
         "build": build_forge
     },
+    "hevm-cvc5-abst": {
+        "call": "tools/hevm.sh",
+        "version": "tools/hevm_version.sh",
+        "extra_opts": ["--solver", "cvc5", "--abst-refine"],
+        "build": build_forge
+    },
+    "hevm-z3-abst": {
+        "call": "tools/hevm.sh",
+        "version": "tools/hevm_version.sh",
+        "extra_opts": ["--solver","z3", "--abst-refine"],
+        "build": build_forge
+    },
     "halmos": {
         "call": "tools/halmos.sh",
         "version": "tools/halmos_version.sh",
@@ -203,7 +215,7 @@ def last_line_in_file(fname: str) -> str:
 # Result from a solver
 class Result:
     def __init__(self, result: str, mem_used_MB: float|None, exit_status: int|None,
-                 perc_CPU: int|None, t: float|None, tout: float|None,
+                 perc_CPU: int|None, t: float|None, tout: float|None, memout: float|None,
                  case: Case, out:str):
         self.result = result
         self.exit_status = exit_status
@@ -211,6 +223,7 @@ class Result:
         self.perc_CPU = perc_CPU
         self.t = t
         self.tout = tout
+        self.memout = memout
         self.case = case
         self.out = out
 
@@ -225,7 +238,7 @@ def execute_case(tool: str, extra_opts: list[str], case: Case) -> Result:
     fname_time = unique_file("output")
     toexec = ["time", "--verbose", "-o", "%s" % fname_time,
               tool, case.sol_file, case.contract, case.fun, case.sig,
-              "%i" % case.ds, "%s" % opts.timeout]
+              "%i" % case.ds, "%s" % opts.timeout, opts.memout*1000]
     toexec.extend(extra_opts)
     print("Running: %s" % (" ".join(toexec)))
     res = subprocess.run(toexec, capture_output=True, encoding="utf-8")
@@ -270,7 +283,7 @@ def execute_case(tool: str, extra_opts: list[str], case: Case) -> Result:
 
     return Result(result=result, mem_used_MB=mem_used_MB,
                   perc_CPU=perc_CPU, exit_status=exit_status,
-                  t=time_taken, tout=opts.timeout, case=case, out=res.stderr)
+                  t=time_taken, tout=opts.timeout, memout=opts.memout, case=case, out=res.stderr)
 
 
 def get_version(script: str) -> str:
@@ -333,7 +346,7 @@ def dump_results(solvers_results: dict[str, list[Result]], fname: str):
     with open("%s.json" % fname, "w") as f:
         f.write(json.dumps(solvers_results, indent=2, cls=ResultEncoder))
     with open("%s.csv" % fname, "w", newline='') as f:
-        fieldnames = ["solver", "solc_version", "name", "fun", "sig", "result", "correct", "t", "timeout", "memMB", "exit_status", "output"]
+        fieldnames = ["solver", "solc_version", "name", "fun", "sig", "result", "correct", "t", "timeout", "memout", "memMB", "exit_status", "output"]
         writer = csv.DictWriter(f, fieldnames=fieldnames)
         writer.writeheader()
         for solver, results in solvers_results.items():
@@ -346,7 +359,9 @@ def dump_results(solvers_results: dict[str, list[Result]], fname: str):
                     "name": r.case.get_name(), "fun": r.case.fun,
                     "sig": r.case.sig, "result": r.result,
                     "correct": corr_as_sqlite, "t": empty_if_none(r.t),
-                    "timeout": r.tout, "memMB": empty_if_none(r.mem_used_MB),
+                    "timeout": r.tout,
+                    "memout": r.memout,
+                    "memMB": empty_if_none(r.mem_used_MB),
                     "exit_status": empty_if_none(r.exit_status), "output": r.out})
 
 
@@ -378,6 +393,9 @@ def set_up_parser() -> optparse.OptionParser:
 
     parser.add_option("-t", dest="timeout", type=int, default=25,
                       help="Max time to run. Default: %default")
+
+    parser.add_option("-m", dest="memout", type=int, default=5000,
+                      help="Max amount of MB per process. Default: %default")
 
     parser.add_option("--limit", dest="limit", type=int, default=100000,
                       help="Max number of cases to run. Default: %default")

@@ -441,6 +441,9 @@ def main() -> None:
 
     cases = gather_cases()
     cases.sort(key=lambda contr: contr.get_name())
+    if len(cases) == 0:
+        print(f"No cases gathered with test pattern '{opts.testpattern}'. Exiting.")
+        exit(0)
     print(f"Cases gathered given test pattern '{opts.testpattern}':")
     for c in cases:
         print("-> %s" % c)

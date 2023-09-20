@@ -13,25 +13,24 @@
       url = "github:a16z/halmos";
       flake = false;
     };
-    doalarm-src = {
-      url = "github:msooseth/doalarm";
+    runlim-src = {
+      url = "github:msooseth/runlim";
       flake = false;
     };
   };
 
-  outputs = { self, nixpkgs, flake-utils, hevm, kevm, foundry, echidna, halmos-src, doalarm-src }:
+  outputs = { self, nixpkgs, flake-utils, hevm, kevm, foundry, echidna, halmos-src, runlim-src }:
     flake-utils.lib.eachDefaultSystem (system:
       let
         pkgs = nixpkgs.legacyPackages.${system};
-        doalarm = pkgs.stdenv.mkDerivation {
-          pname = "doalarm";
+        runlim = pkgs.stdenv.mkDerivation {
+          pname = "runlim";
           version = "1.0";
-          src = doalarm-src;
           configurePhase = ''
             mkdir -p $out/bin
+            ./configure.sh --prefix=$out/bin
           '';
-          makeFlags = ["PREFIX=$(out)"];
-          buildInputs = [ pkgs.coreutils pkgs.gnumake pkgs.gcc];
+          src = runlim-src;
         };
         halmos = pkgs.python3.pkgs.buildPythonApplication rec {
           pname = "halmos";
@@ -68,7 +67,7 @@
             pkgs.sqlite-interactive
             pkgs.gnuplot
             pkgs.time
-            doalarm
+            runlim
           ];
         };
       });

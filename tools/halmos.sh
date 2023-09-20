@@ -12,7 +12,7 @@ memout="$1"; shift
 
 ulimit -m "$memout"
 
-out=$(doalarm -t real "${tout}" halmos --function "${fun_name}" --contract "${contract_name}" "$@" 2>&1)
+out=$(runlim --real-time-limit="${tout}" --kill-delay=10 halmos --function "${fun_name}" --contract "${contract_name}" "$@" 2>&1)
 
 set +x
 

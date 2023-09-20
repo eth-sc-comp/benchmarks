@@ -52,13 +52,13 @@ available_tools = {
     "hevm-cvc5-abst": {
         "call": "tools/hevm.sh",
         "version": "tools/hevm_version.sh",
-        "extra_opts": ["--solver", "cvc5", "--abst-refine"],
+        "extra_opts": ["--solver", "cvc5", "--abstract-memory"],
         "build": build_forge
     },
     "hevm-z3-abst": {
         "call": "tools/hevm.sh",
         "version": "tools/hevm_version.sh",
-        "extra_opts": ["--solver","z3", "--abst-refine"],
+        "extra_opts": ["--solver","z3", "--abstract-memory"],
         "build": build_forge
     },
     "halmos": {

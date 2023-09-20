@@ -250,7 +250,6 @@ def gen_boxgraphs() -> None:
             f.write("set notitle\n")
             f.write("plot [0:] \\\n")
             half = round(len(all_solvers)/2.0)
-            mid = False
             for i in range(len(all_solvers)):
                 solver = all_solvers[i]
                 if i == 0: xtic = ":xtic(2)"
@@ -259,8 +258,8 @@ def gen_boxgraphs() -> None:
                     f.write("\"{fname_boxdata}\" using ($1-{offs}):{at}{xtic} with boxes t \"{solver}\"".format(
                         fname_boxdata=fname_boxdata, solver=solver, offs = (0.1*(half-i)), at=i+3, xtic=xtic))
                 else:
-                    f.write("\"{fname_boxdata}\" using ($1+{offs}):{at}:xtic(2) with boxes t \"{solver}\"".format(
-                        fname_boxdata=fname_boxdata, solver=solver, offs = (0.1*(i-half)), at=i+3))
+                    f.write("\"{fname_boxdata}\" using ($1+{offs}):{at}{xtic} with boxes t \"{solver}\"".format(
+                        fname_boxdata=fname_boxdata, solver=solver, offs = (0.1*(i-half)), at=i+3, xtic=xtic))
 
                 if i < len(all_solvers)-1:
                     f.write(", \\\n")

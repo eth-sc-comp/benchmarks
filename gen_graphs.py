@@ -279,7 +279,7 @@ def set_up_parser() -> optparse.OptionParser:
     parser = optparse.OptionParser(usage=usage, description=desc)
     parser.add_option("--verbose", "-v", action="store_true", default=False,
                       dest="verbose", help="More verbose output. Default: %default")
-    parser.add_option("--nodel", "-v", action="store_true", default=False,
+    parser.add_option("--nodel", action="store_true", default=False,
                       dest="no_del", help="Don't delete intermediate files")
     parser.add_option("--box", action="store_true", default=False,
                       dest="box_only", help="Only generate box graph")

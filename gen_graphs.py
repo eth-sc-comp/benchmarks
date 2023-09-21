@@ -2,6 +2,7 @@
 
 import os
 import sqlite3
+import optparse
 
 
 # Converts file to ascending space-delimited file that shows
@@ -269,15 +270,43 @@ def gen_boxgraphs() -> None:
     os.unlink(fname_boxdata)
 
 
+# Set up options for main
+def set_up_parser() -> optparse.OptionParser:
+    usage = "usage: %prog [options]"
+    desc = """Generate all graphs
+    """
+
+    parser = optparse.OptionParser(usage=usage, description=desc)
+    parser.add_option("--verbose", "-v", action="store_true", default=False,
+                      dest="verbose", help="More verbose output. Default: %default")
+    parser.add_option("--nodel", "-v", action="store_true", default=False,
+                      dest="no_del", help="Don't delete intermediate files")
+    parser.add_option("--box", action="store_true", default=False,
+                      dest="box_only", help="Only generate box graph")
+    parser.add_option("--cdf", action="store_true", default=False,
+                      dest="cdf_only", help="Only generate CDF graph")
+
+    return parser
+
+
 def main() -> None:
     try:
         os.mkdir("graphs")
     except FileExistsError:
         pass
+
+    parser = set_up_parser()
+    global opts
+    (opts, _) = parser.parse_args()
+    only_some : bool = opts.cdf_only or opts.box_only
+
     check_all_same_tout()
-    gen_cdf_graph()
-    gen_comparative_graphs()
-    gen_boxgraphs()
+    if not only_some or opts.cdf_only:
+        gen_cdf_graph()
+    if not only_some or opts.box_only:
+        gen_boxgraphs()
+    if not only_some:
+        gen_comparative_graphs()
 
 
 if __name__ == "__main__":

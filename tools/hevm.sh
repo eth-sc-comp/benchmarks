@@ -11,6 +11,7 @@ tout="$1"; shift
 memout="$1"; shift
 
 ulimit -m "$memout"
+rm -f ./*.smt2
 
 SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 source "$SCRIPT_DIR/utils.sh"
@@ -24,6 +25,10 @@ else
     echo "Called incorrectly"
     exit 1
 fi
+
+dir="hevm-smt2/${contract_file}.${contract_name}/"
+mkdir -p "$dir"
+mv -f ./*.smt2 "$dir/"
 
 set +x
 

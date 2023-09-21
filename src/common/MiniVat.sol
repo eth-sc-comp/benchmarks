@@ -2,12 +2,18 @@
 
 pragma solidity ^0.8.17;
 
-contract MiniVat {
+import "ds-test/test.sol";
+
+contract MiniVat is DSTest {
     uint256 public debt;
     mapping(address => uint256) public art;
     mapping(address => uint256) public dai;
     uint256 public Art;
     uint256 public rate;
+
+    function setUp() public {
+        init();
+    }
 
     function init() public {
         require(rate == 0, "rate not zero");

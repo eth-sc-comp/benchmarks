@@ -167,18 +167,22 @@ def gather_cases() -> list[Case]:
     cases: list[Case] = []
     for out_dir, contracts in output_jsons.items():
         for c in contracts:
-            json_fname = f"{out_dir}/{c}.json"
-            if json_fname.startswith("out/build-info"):
+            json_path = f"{out_dir}/{c}.json"
+            if json_path.startswith("out/build-info"):
                 continue
-            with open(json_fname) as oj:
+            with open(json_path) as oj:
                 js = json.load(oj)
                 sol_file: str = js["ast"]["absolutePath"]
                 if sol_file.startswith("src/common/") or sol_file.startswith("lib/"):
                     continue
                 ds_test = determine_dstest(sol_file)
                 for f_and_s in get_relevant_funcs(js):
-                    if re.match(opts.testpattern, "%s:%s" % (c, f_and_s[0])):
-                        cases.append(Case(c, json_fname, sol_file, ds_test,
+                    fname = os.path.basename(sol_file)
+                    casename = f"{fname}:{c}:{f_and_s[0]}"
+                    if opts.verbose:
+                        print("Matching test pattern against: ", casename)
+                    if re.match(opts.testpattern, casename):
+                        cases.append(Case(c, json_path, sol_file, ds_test,
                                           f_and_s[0], f_and_s[1]))
     return cases
 
@@ -381,8 +385,8 @@ def set_up_parser() -> optparse.OptionParser:
     parser.add_option("-s", dest="seed", type=int, default=1,
                       help="Seed for random numbers. Default: %default")
 
-    parser.add_option("--tests", dest="testpattern", type=str, default=".*:.*",
-                      help="Test pattern regexp in the format 'contract:function'. Default: %default")
+    parser.add_option("--tests", dest="testpattern", type=str, default=".*",
+                      help="Test pattern regexp in the format 'fname:contract:function'. Default: %default")
 
     avail = ", ".join([t for t,_ in available_tools.items()])
     parser.add_option("--tools", dest="tools", type=str, default="all",

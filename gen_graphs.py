@@ -4,6 +4,10 @@ import os
 import sqlite3
 import optparse
 
+def unlink(fname):
+    if not opts.no_del:
+        os.unlink(fname)
+
 
 # Converts file to ascending space-delimited file that shows
 # the number of problems solved and the timeout it took to solve the next
@@ -58,11 +62,11 @@ def gen_cdf_files() -> list[tuple[str, str, int]]:
             f.write(".output "+fname_csv+"\n")
             f.write("select t from results where solver='"+solver+"'\n and result!='unknown'")
         os.system("sqlite3 results.db < %s" % fname_csv_gen)
-        os.unlink(fname_csv_gen)
+        unlink(fname_csv_gen)
 
         fname_cdf = fname_csv + ".gnuplotdata"
         num_solved = convert_to_cdf(fname_csv, fname_cdf)
-        os.unlink(fname_csv)
+        unlink(fname_csv)
         ret.append([fname_cdf, solver, num_solved])
     return ret
 
@@ -124,10 +128,10 @@ def gen_comparative_graphs() -> None:
                 name = genplot(t)
                 print("Generating graph: graphs/%s" % name)
             os.system("gnuplot "+fname_gnuplot)
-            os.unlink(fname_gnuplot)
+            unlink(fname_gnuplot)
 
             # delete data file
-            os.unlink(fname_gnuplot_data)
+            unlink(fname_gnuplot_data)
 
 
 # Generates  a Cumulative Distribution Function (CDF) from the data
@@ -163,9 +167,9 @@ def gen_cdf_graph() -> None:
             f.write("\n")
 
     os.system("gnuplot "+fname_gnuplot)
-    os.unlink(fname_gnuplot)
+    unlink(fname_gnuplot)
     for fname, _, _ in cdf_files:
-        os.unlink(fname)
+        unlink(fname)
 
     print("graph generated: graphs/cdf.eps")
     print("graph generated: graphs/cdf.png")
@@ -266,8 +270,8 @@ def gen_boxgraphs() -> None:
                     f.write(", \\\n")
             f.write("\n")
     os.system("gnuplot "+fname_gnuplot)
-    os.unlink(fname_gnuplot)
-    os.unlink(fname_boxdata)
+    unlink(fname_gnuplot)
+    unlink(fname_boxdata)
 
 
 # Set up options for main

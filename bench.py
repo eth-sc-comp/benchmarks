@@ -49,13 +49,13 @@ available_tools = {
         "extra_opts": ["--solver","z3"],
         "build": build_forge
     },
-    "hevm-cvc5-abst": {
+    "hevm-cvc5-abst-mem": {
         "call": "tools/hevm.sh",
         "version": "tools/hevm_version.sh",
         "extra_opts": ["--solver", "cvc5", "--abstract-memory"],
         "build": build_forge
     },
-    "hevm-z3-abst": {
+    "hevm-z3-abst-mem": {
         "call": "tools/hevm.sh",
         "version": "tools/hevm_version.sh",
         "extra_opts": ["--solver","z3", "--abstract-memory"],

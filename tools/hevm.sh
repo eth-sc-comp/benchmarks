@@ -10,17 +10,14 @@ ds_test="$1"; shift
 tout="$1"; shift
 memout="$1"; shift
 
-ulimit -m "$memout"
-rm -f ./*.smt2
-
 SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 source "$SCRIPT_DIR/utils.sh"
 
 if [[ "${ds_test}" == "0" ]]; then
     code=$(get_runtime_bytecode "${contract_file}" "${contract_name}")
-    out=$(runlim --real-time-limit="${tout}" --kill-delay=2 hevm symbolic --code "${code}" --sig "${sig}" "$@" 2>&1)
+    out=$(runlim --real-time-limit="${tout}" --space-limit="${memout}" --kill-delay=2 hevm symbolic --code "${code}" --sig "${sig}" "$@" 2>&1)
 elif [[ "${ds_test}" == "1" ]]; then
-    out=$(runlim --real-time-limit="${tout}" --kill-delay=2 hevm test --match "${contract_file}.*${fun_name}" "$@" 2>&1)
+    out=$(runlim --real-time-limit="${tout}" --space-limit="${memout}" --kill-delay=2 hevm test --match "${contract_file}.*${fun_name}" "$@" 2>&1)
 else
     echo "Called incorrectly"
     exit 1

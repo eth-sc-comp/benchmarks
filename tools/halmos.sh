@@ -10,9 +10,7 @@ ds_test="$1"; shift
 tout="$1"; shift
 memout="$1"; shift
 
-ulimit -m "$memout"
-
-out=$(runlim --real-time-limit="${tout}" --kill-delay=2 halmos --function "${fun_name}" --contract "${contract_name}" "$@" 2>&1)
+out=$(runlim --real-time-limit="${tout}" --kill-delay=2 halmos --space-limit="${memout}" --function "${fun_name}" --contract "${contract_name}" "$@" 2>&1)
 
 set +x
 

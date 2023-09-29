@@ -4,6 +4,7 @@ import os
 import sqlite3
 import optparse
 
+
 def unlink(fname):
     if not opts.no_del:
         os.unlink(fname)
@@ -115,10 +116,10 @@ def gen_comparative_graphs() -> None:
                     a.solver='%s' and b.solver='%s' and a.name=b.name""" % (solver, solver2))
                 fname_gnuplot_data = "graphs/compare-"+solver+"-"+solver2+".gnuplotdata"
                 with open(fname_gnuplot_data, "w") as f:
-                    for l in ret:
-                        solver1_t = l[0]
-                        solver2_t = l[1]
-                        name = l[2]
+                    for line in ret:
+                        solver1_t = line[0]
+                        solver2_t = line[1]
+                        name = line[2]
                         f.write("%f %f %s\n" % (solver1_t, solver2_t, name))
 
             # generate plot
@@ -257,8 +258,10 @@ def gen_boxgraphs() -> None:
             half = round(len(all_solvers)/2.0)
             for i in range(len(all_solvers)):
                 solver = all_solvers[i]
-                if i == 0: xtic = ":xtic(2)"
-                else: xtic = ""
+                if i == 0:
+                    xtic = ":xtic(2)"
+                else:
+                    xtic = ""
                 if i <= len(all_solvers)/2:
                     f.write("\"{fname_boxdata}\" using ($1-{offs}):{at}{xtic} with boxes t \"{solver}\"".format(
                         fname_boxdata=fname_boxdata, solver=solver, offs = (0.1*(half-i)), at=i+3, xtic=xtic))

@@ -10,6 +10,8 @@ ds_test="$1"; shift
 tout="$1"; shift
 memout="$1"; shift
 
+rm -f ./*.smt2
+
 SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 source "$SCRIPT_DIR/utils.sh"
 

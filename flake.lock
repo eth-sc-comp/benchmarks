@@ -816,11 +816,11 @@
     "halmos-src": {
       "flake": false,
       "locked": {
-        "lastModified": 1691101578,
-        "narHash": "sha256-TBG+TLU+Fh4eiKLtxe19aTcyfOQl/yPXxVbPYmVAVk8=",
+        "lastModified": 1695786578,
+        "narHash": "sha256-T88s+5od7SXzxU30RhBcHhIZn5N1K90McDILch5Z6JQ=",
         "owner": "a16z",
         "repo": "halmos",
-        "rev": "fc61d2fb4f1470e03b9e46e4c435a842c6b7adb9",
+        "rev": "c1a175f28a5fb5bdf5d9204a7b12e5091f90b6ac",
         "type": "github"
       },
       "original": {

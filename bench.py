@@ -398,7 +398,7 @@ def set_up_parser() -> optparse.OptionParser:
     parser.add_option("-t", dest="timeout", type=int, default=25,
                       help="Max time to run. Default: %default")
 
-    parser.add_option("-m", dest="memoutMB", type=int, default=16,
+    parser.add_option("-m", dest="memoutMB", type=int, default=16000,
                       help="Max memory per execution of the tool, in MB. Note that if your tool uses 16 threads, each 100MB, it will be counted as 1600MB. Default: %default")
 
     parser.add_option("--limit", dest="limit", type=int, default=100000,

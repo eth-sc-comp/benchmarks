@@ -16,7 +16,11 @@ out=$(runlim --real-time-limit="${tout}" --kill-delay=2 halmos --space-limit="${
 
 dir="halmos-smt2/${contract_file}.${contract_name}/"
 mkdir -p "$dir"
-mv -f ./*.smt2 "$dir/"
+shopt -s nullglob
+set -- *.smt2
+if [ "$#" -gt 0 ]; then
+ mv -f ./*.smt2 "$dir/"
+fi
 
 set +x
 

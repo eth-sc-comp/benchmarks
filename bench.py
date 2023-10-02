@@ -287,7 +287,7 @@ def execute_case(tool: str, extra_opts: list[str], case: Case) -> Result:
 
     return Result(result=result, mem_used_MB=mem_used_MB,
                   perc_CPU=perc_CPU, exit_status=exit_status,
-                  t=time_taken, tout=opts.timeout, memoutMB=opts.memoutGB, case=case, out=res.stderr)
+                  t=time_taken, tout=opts.timeout, memoutMB=opts.memoutMB, case=case, out=res.stderr)
 
 
 def get_version(script: str) -> str:
@@ -398,7 +398,7 @@ def set_up_parser() -> optparse.OptionParser:
     parser.add_option("-t", dest="timeout", type=int, default=25,
                       help="Max time to run. Default: %default")
 
-    parser.add_option("-m", dest="memout", type=int, default=16,
+    parser.add_option("-m", dest="memoutMB", type=int, default=16,
                       help="Max memory per execution of the tool, in MB. Note that if your tool uses 16 threads, each 100MB, it will be counted as 1600MB. Default: %default")
 
     parser.add_option("--limit", dest="limit", type=int, default=100000,

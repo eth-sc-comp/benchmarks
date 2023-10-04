@@ -2,7 +2,7 @@ FROM ubuntu:22.04
 
 LABEL maintainer="mate.soos@ethereum.org"
 LABEL version="0.1"
-LABEL description="This is a custom Docker Image for symbolic execution benchmark running for MacOS"
+LABEL description="This is a custom Docker Image for symbolic execution benchmark running"
 
 # RUN nix-env -iA nixpkgs.su
 RUN DEBIAN_FRONTEND=noninteractive apt-get update

@@ -44,7 +44,7 @@ docker build --tag evm-symb-bench .
 docker run -it --rm  --entrypoint /bin/bash evm-symb-bench
 # once inside the container
 source $HOME/.nix-profile/etc/profile.d/nix.sh
-nix develop # should be fast
+nix --extra-experimental-features nix-command --extra-experimental-features flakes develop
 ./bench.py
 ./gen_graphs.py
 ```

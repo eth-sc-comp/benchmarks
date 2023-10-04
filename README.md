@@ -41,7 +41,12 @@ If `docker ps -a` ran fine, then you can now create a docker image via:
 
 ```
 docker build --tag evm-symb-bench .
-docker run -it --rm  --entrypoint /bin/sh evm-symb-bench
+docker run -it --rm  --entrypoint /bin/bash evm-symb-bench
+# once inside the container
+source $HOME/.nix-profile/etc/profile.d/nix.sh
+nix develop # should be fast
+./bench.py
+./gen_graphs.py
 ```
 
 ## Using This Repository

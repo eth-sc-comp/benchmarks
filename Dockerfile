@@ -20,10 +20,15 @@ WORKDIR /home/bench
 SHELL ["/bin/bash", "-c"]
 ENV USER=bench
 ENV HOME=/home/bench
+
 RUN sudo install -d -m755 -o $(id -u) -g $(id -g) /nix
 RUN curl -L https://nixos.org/nix/install | sh
+RUN source $HOME/.nix-profile/etc/profile.d/nix.sh && nix-shell -p cachix --command "cachix use k-framework"
+
 RUN git clone https://github.com/eth-sc-comp/benchmarks
-RUN source $HOME/.nix-profile/etc/profile.d/nix.sh && cd benchmarks && nix --extra-experimental-features flakes --extra-experimental-features nix-command develop
+WORKDIR /home/bench/benchmarks
+
+RUN source $HOME/.nix-profile/etc/profile.d/nix.sh && nix --extra-experimental-features flakes --extra-experimental-features nix-command develop
 
 RUN export HOME=/home/bench USER=bench
 ENTRYPOINT ["/bin/bash"]

@@ -287,7 +287,7 @@ def set_up_parser() -> optparse.OptionParser:
     parser.add_option("--verbose", "-v", action="store_true", default=False,
                       dest="verbose", help="More verbose output. Default: %default")
     parser.add_option("--nodel", action="store_true", default=False,
-                      dest="no_del", help="Don't delete intermediate files")
+                      dest="no_del", help="Don't delete intermediate files. Allows you to run your own graphing tools on the raw datafiles, or edit the graphviz files to match your requirements")
     parser.add_option("--box", action="store_true", default=False,
                       dest="box_only", help="Only generate box graph")
     parser.add_option("--cdf", action="store_true", default=False,

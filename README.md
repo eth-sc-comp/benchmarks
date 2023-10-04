@@ -41,6 +41,7 @@ If `docker ps -a` ran fine, then you can now create a docker image via:
 
 ```
 docker build --tag evm-symb-bench .
+docker run -it --rm  --entrypoint /bin/sh evm-symb-bench
 ```
 
 ## Using This Repository

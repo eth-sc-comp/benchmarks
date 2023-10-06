@@ -31,4 +31,4 @@ WORKDIR /home/bench/benchmarks
 RUN source $HOME/.nix-profile/etc/profile.d/nix.sh && nix --extra-experimental-features flakes --extra-experimental-features nix-command develop
 
 RUN export HOME=/home/bench USER=bench
-ENTRYPOINT ["/bin/bash"]
+ENTRYPOINT ["/bin/bash", "-c", "source $HOME/.nix-profile/etc/profile.d/nix.sh && nix --extra-experimental-features flakes --extra-experimental-features nix-command develop"]

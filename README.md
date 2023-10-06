@@ -41,10 +41,7 @@ If `docker ps -a` ran fine, then you can now create a docker image via:
 
 ```
 docker build --tag sym-bench .
-docker run -it --rm  --entrypoint /bin/bash sym-bench
-# once inside the container
-source $HOME/.nix-profile/etc/profile.d/nix.sh
-nix --extra-experimental-features nix-command --extra-experimental-features flakes develop
+docker run -it --rm sym-bench
 ./bench.py
 ./gen_graphs.py
 ```

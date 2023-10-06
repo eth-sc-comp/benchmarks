@@ -1,8 +1,9 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 pragma solidity ^0.8.17;
+import "ds-test/test.sol";
 
-contract MyContractAddMod {
+contract MyContractAddMod is DSTest {
   function prove_addmod_no_overflow(uint8 a, uint8 b, uint8 c) external pure {
     require(a < 4);
     require(b < 4);

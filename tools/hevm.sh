@@ -8,18 +8,31 @@ fun_name="$1"; shift
 sig="$1"; shift
 ds_test="$1"; shift
 tout="$1"; shift
+memout="$1"; shift
+
+rm -f ./*.smt2
 
 SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 source "$SCRIPT_DIR/utils.sh"
 
 if [[ "${ds_test}" == "0" ]]; then
     code=$(get_runtime_bytecode "${contract_file}" "${contract_name}")
-    out=$(doalarm -t real "${tout}" hevm symbolic --code "${code}" --sig "${sig}" "$@")
+    out=$(runlim --real-time-limit="${tout}" --space-limit="${memout}" --kill-delay=2 hevm symbolic --code "${code}" --sig "${sig}" "$@" 2>&1)
 elif [[ "${ds_test}" == "1" ]]; then
-    out=$(doalarm -t real "${tout}" hevm test --match "${contract_file}.*${fun_name}" "$@")
+    out=$(runlim --real-time-limit="${tout}" --space-limit="${memout}" --kill-delay=2 hevm test --match "${contract_file}.*${fun_name}" "$@" 2>&1)
 else
     echo "Called incorrectly"
     exit 1
+fi
+
+# Check if we emitted smt2 files. If so, copy them over to a
+# directory based on the contract file & name
+shopt -s nullglob
+set -- *.smt2
+if [ "$#" -gt 0 ]; then
+  dir="hevm-smt2/${contract_file}.${contract_name}/"
+  mkdir -p "$dir"
+  mv -f ./*.smt2 "$dir/"
 fi
 
 set +x

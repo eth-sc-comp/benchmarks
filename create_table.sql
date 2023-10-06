@@ -9,6 +9,7 @@ CREATE TABLE IF NOT EXISTS results (
   correct INT,
   t FLOAT,
   tout FLOAT,
+  memoutMB FLOAT,
   memMB FLOAT,
   exit_status INT,
   output STRING

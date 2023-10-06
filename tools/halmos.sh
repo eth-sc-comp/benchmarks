@@ -8,8 +8,21 @@ fun_name="$1"; shift
 sig="$1"; shift
 ds_test="$1"; shift
 tout="$1"; shift
+memout="$1"; shift
 
-out=$(doalarm -t real "${tout}" halmos --function "${fun_name}" --contract "${contract_name}" "$@" 2>&1)
+rm -f ./*.smt2
+
+out=$(runlim --real-time-limit="${tout}" --kill-delay=2 --space-limit="${memout}" halmos --function "${fun_name}" --contract "${contract_name}" "$@" 2>&1)
+
+# Check if we emitted smt2 files. If so, copy them over to a
+# directory based on the contract file & name
+shopt -s nullglob
+set -- *.smt2
+if [ "$#" -gt 0 ]; then
+  dir="halmos-smt2/${contract_file}.${contract_name}/"
+  mkdir -p "$dir"
+  mv -f ./*.smt2 "$dir/"
+fi
 
 set +x
 

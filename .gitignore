@@ -8,3 +8,5 @@ tags
 *.eps
 *.db
 graphs/
+*.smt2
+*.expr

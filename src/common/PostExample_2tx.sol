@@ -2,7 +2,9 @@
 
 pragma solidity ^0.8.17;
 
-contract PostExample {
+import "ds-test/test.sol";
+
+contract PostExample is DSTest {
     bool live;
 
     modifier isLive() {

@@ -1,7 +1,13 @@
-#!/bin/python3
+#!/usr/bin/env python3
 
 import os
 import sqlite3
+import optparse
+
+
+def unlink(fname):
+    if not opts.no_del:
+        os.unlink(fname)
 
 
 # Converts file to ascending space-delimited file that shows
@@ -57,11 +63,11 @@ def gen_cdf_files() -> list[tuple[str, str, int]]:
             f.write(".output "+fname_csv+"\n")
             f.write("select t from results where solver='"+solver+"'\n and result!='unknown'")
         os.system("sqlite3 results.db < %s" % fname_csv_gen)
-        os.unlink(fname_csv_gen)
+        unlink(fname_csv_gen)
 
         fname_cdf = fname_csv + ".gnuplotdata"
         num_solved = convert_to_cdf(fname_csv, fname_cdf)
-        os.unlink(fname_csv)
+        unlink(fname_csv)
         ret.append([fname_cdf, solver, num_solved])
     return ret
 
@@ -110,10 +116,10 @@ def gen_comparative_graphs() -> None:
                     a.solver='%s' and b.solver='%s' and a.name=b.name""" % (solver, solver2))
                 fname_gnuplot_data = "graphs/compare-"+solver+"-"+solver2+".gnuplotdata"
                 with open(fname_gnuplot_data, "w") as f:
-                    for l in ret:
-                        solver1_t = l[0]
-                        solver2_t = l[1]
-                        name = l[2]
+                    for line in ret:
+                        solver1_t = line[0]
+                        solver2_t = line[1]
+                        name = line[2]
                         f.write("%f %f %s\n" % (solver1_t, solver2_t, name))
 
             # generate plot
@@ -123,10 +129,10 @@ def gen_comparative_graphs() -> None:
                 name = genplot(t)
                 print("Generating graph: graphs/%s" % name)
             os.system("gnuplot "+fname_gnuplot)
-            os.unlink(fname_gnuplot)
+            unlink(fname_gnuplot)
 
             # delete data file
-            os.unlink(fname_gnuplot_data)
+            unlink(fname_gnuplot_data)
 
 
 # Generates  a Cumulative Distribution Function (CDF) from the data
@@ -162,9 +168,9 @@ def gen_cdf_graph() -> None:
             f.write("\n")
 
     os.system("gnuplot "+fname_gnuplot)
-    os.unlink(fname_gnuplot)
+    unlink(fname_gnuplot)
     for fname, _, _ in cdf_files:
-        os.unlink(fname)
+        unlink(fname)
 
     print("graph generated: graphs/cdf.eps")
     print("graph generated: graphs/cdf.png")
@@ -250,24 +256,44 @@ def gen_boxgraphs() -> None:
             f.write("set notitle\n")
             f.write("plot [0:] \\\n")
             half = round(len(all_solvers)/2.0)
-            mid = False
             for i in range(len(all_solvers)):
                 solver = all_solvers[i]
-                if i == 0: xtic = ":xtic(2)"
-                else: xtic = ""
+                if i == 0:
+                    xtic = ":xtic(2)"
+                else:
+                    xtic = ""
                 if i <= len(all_solvers)/2:
                     f.write("\"{fname_boxdata}\" using ($1-{offs}):{at}{xtic} with boxes t \"{solver}\"".format(
                         fname_boxdata=fname_boxdata, solver=solver, offs = (0.1*(half-i)), at=i+3, xtic=xtic))
                 else:
-                    f.write("\"{fname_boxdata}\" using ($1+{offs}):{at}:xtic(2) with boxes t \"{solver}\"".format(
-                        fname_boxdata=fname_boxdata, solver=solver, offs = (0.1*(i-half)), at=i+3))
+                    f.write("\"{fname_boxdata}\" using ($1+{offs}):{at}{xtic} with boxes t \"{solver}\"".format(
+                        fname_boxdata=fname_boxdata, solver=solver, offs = (0.1*(i-half)), at=i+3, xtic=xtic))
 
                 if i < len(all_solvers)-1:
                     f.write(", \\\n")
             f.write("\n")
     os.system("gnuplot "+fname_gnuplot)
-    os.unlink(fname_gnuplot)
-    os.unlink(fname_boxdata)
+    unlink(fname_gnuplot)
+    unlink(fname_boxdata)
+
+
+# Set up options for main
+def set_up_parser() -> optparse.OptionParser:
+    usage = "usage: %prog [options]"
+    desc = """Generate all graphs
+    """
+
+    parser = optparse.OptionParser(usage=usage, description=desc)
+    parser.add_option("--verbose", "-v", action="store_true", default=False,
+                      dest="verbose", help="More verbose output. Default: %default")
+    parser.add_option("--nodel", action="store_true", default=False,
+                      dest="no_del", help="Don't delete intermediate files. Allows you to run your own graphing tools on the raw datafiles, or edit the graphviz files to match your requirements")
+    parser.add_option("--box", action="store_true", default=False,
+                      dest="box_only", help="Only generate box graph")
+    parser.add_option("--cdf", action="store_true", default=False,
+                      dest="cdf_only", help="Only generate CDF graph")
+
+    return parser
 
 
 def main() -> None:
@@ -275,10 +301,19 @@ def main() -> None:
         os.mkdir("graphs")
     except FileExistsError:
         pass
+
+    parser = set_up_parser()
+    global opts
+    (opts, _) = parser.parse_args()
+    only_some : bool = opts.cdf_only or opts.box_only
+
     check_all_same_tout()
-    gen_cdf_graph()
-    gen_comparative_graphs()
-    gen_boxgraphs()
+    if not only_some or opts.cdf_only:
+        gen_cdf_graph()
+    if not only_some or opts.box_only:
+        gen_boxgraphs()
+    if not only_some:
+        gen_comparative_graphs()
 
 
 if __name__ == "__main__":

@@ -1,8 +1,9 @@
 // SPDX-License-Identifier: MIT
 
 pragma solidity >=0.8.9;
+import "ds-test/test.sol";
 
-contract C {
+contract C is DSTest {
     function prove_easy(uint v) public pure {
         if (v != 100) return;
         assert(v == 100);

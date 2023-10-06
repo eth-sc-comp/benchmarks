@@ -9,13 +9,14 @@ consume Solidity, Yul, or EVM bytecode.
 The benchmarks in this repo should be useful to developers of all kinds of
 tools, including fuzzers, static analyzers, and symbolic execution engines.
 
-### Quick Start Guide
+### Quick Start Guide -- Linux
 
 Install nix (see [here](https://nixos.org/download.html)). Then:
 
 ```
 # optional, but will make subsequent steps significantly faster
 sudo nix-shell -p cachix --command "cachix use k-framework"
+
 nix develop   # this may take some time
 ./bench.py
 ./gen_graphs.py
@@ -23,6 +24,27 @@ cd graphs
 ```
 
 You can look at the graphs under the folder `graphs`
+
+### Quick Start Guide -- Mac
+
+You will need to create a docker image. This is because unfortunately MacOS
+does not support the procfs (i.e. `/proc`) and `runlim` does not work with
+`sysctl`. We suggest the following setup:
+
+```
+brew install colima
+colima start
+docker ps -a
+```
+
+If `docker ps -a` ran fine, then you can now create a docker image via:
+
+```
+docker build --tag sym-bench .
+docker run -it --rm sym-bench
+./bench.py
+./gen_graphs.py
+```
 
 ## Using This Repository
 

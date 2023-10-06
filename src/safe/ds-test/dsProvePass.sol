@@ -34,21 +34,6 @@ contract SolidityTestPass is DSTest {
         assert(b == c.a());
     }
 
-    function prove_transfer(uint supply, address usr, uint amt) public {
-        if (amt > supply) return; // no underflow
-
-        token.mint(address(this), supply);
-
-        uint prebal = token.balanceOf(usr);
-        token.transfer(usr, amt);
-        uint postbal = token.balanceOf(usr);
-
-        uint expected = usr == address(this)
-                        ? 0    // self transfer is a noop
-                        : amt; // otherwise `amt` has been transfered to `usr`
-        assert(expected == postbal - prebal);
-    }
-
     function prove_burn(uint supply, uint amt) public {
         if (amt > supply) return; // no undeflow
 

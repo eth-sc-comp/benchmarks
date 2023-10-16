@@ -26,9 +26,11 @@ def build_forge() -> None:
     if not opts.norebuild:
         print("Building with forge...")
         recreate_out()
-        ret = subprocess.run(["forge", "build", "--extra-output",
-                              "storageLayout", "metadata", "--use",
-                              opts.solc_version], capture_output=True)
+        cmd_line = ["forge", "build",
+                   "--extra-output", "storageLayout", "metadata"]
+        if opts.yul: cmd_line.extend(["--extra-output", "ir"])
+        cmd_line.extend(["--use", opts.solc_version])
+        ret = subprocess.run(cmd_line, capture_output=True)
         if ret.returncode != 0:
             print("Forge returned error(s)")
             print(printable_output(ret.stderr))
@@ -41,31 +43,26 @@ available_tools = {
         "call": "tools/hevm.sh",
         "version": "tools/hevm_version.sh",
         "extra_opts": ["--solver", "cvc5"],
-        "build": build_forge
     },
     "hevm-z3": {
         "call": "tools/hevm.sh",
         "version": "tools/hevm_version.sh",
         "extra_opts": ["--solver","z3"],
-        "build": build_forge
     },
     "hevm-cvc5-abst-mem": {
         "call": "tools/hevm.sh",
         "version": "tools/hevm_version.sh",
         "extra_opts": ["--solver", "cvc5", "--abstract-memory"],
-        "build": build_forge
     },
     "hevm-z3-abst-mem": {
         "call": "tools/hevm.sh",
         "version": "tools/hevm_version.sh",
         "extra_opts": ["--solver","z3", "--abstract-memory"],
-        "build": build_forge
     },
     "halmos": {
         "call": "tools/halmos.sh",
         "version": "tools/halmos_version.sh",
         "extra_opts": [],
-        "build": build_forge
     }
 }
 
@@ -303,7 +300,6 @@ def get_version(script: str) -> str:
 def run_all_tests(tools, cases: list[Case]) -> dict[str, list[Result]]:
     results: dict[str, list[Result]] = {}
     for tool, descr in tools.items():
-        descr["build"]()
         version = get_version(descr["version"])
         res = []
         for c in cases:
@@ -406,6 +402,9 @@ def set_up_parser() -> optparse.OptionParser:
 
     parser.add_option("--norebuild", dest="norebuild", default=False,
                       action="store_true", help="Don't rebuild with forge")
+
+    parser.add_option("--yul", action="store_true", default=False,
+                      dest="yul", help="Build through YUL pipeline in forge. You can then access the YUL via `cat myjson | jq '.ir'`.")
 
     return parser
 

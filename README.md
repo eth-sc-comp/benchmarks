@@ -14,9 +14,6 @@ tools, including fuzzers, static analyzers, and symbolic execution engines.
 Install nix (see [here](https://nixos.org/download.html)). Then:
 
 ```
-# optional, but will make subsequent steps significantly faster
-sudo nix-shell -p cachix --command "cachix use k-framework"
-
 nix develop   # this may take some time
 ./bench.py
 ./gen_graphs.py

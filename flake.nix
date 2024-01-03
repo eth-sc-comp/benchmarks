@@ -5,21 +5,14 @@
     flake-utils.url = "github:numtide/flake-utils";
     nixpkgs.url = "github:nixos/nixpkgs";
 
+    # tools
     hevm.url = "github:ethereum/hevm";
-    kevm.url = "github:runtimeverification/evm-semantics";
     foundry.url = "github:shazow/foundry.nix/monthly";
-    echidna.url = "github:crytic/echidna";
-    halmos-src = {
-      url = "github:a16z/halmos";
-      flake = false;
-    };
-    runlim-src = {
-      url = "github:msooseth/runlim";
-      flake = false;
-    };
+    halmos-src = { url = "github:a16z/halmos"; flake = false; };
+    runlim-src = { url = "github:msooseth/runlim"; flake = false; };
   };
 
-  outputs = { self, nixpkgs, flake-utils, hevm, kevm, foundry, echidna, halmos-src, runlim-src }:
+  outputs = { self, nixpkgs, flake-utils, hevm, foundry, halmos-src, runlim-src }:
     flake-utils.lib.eachDefaultSystem (system:
       let
         pkgs = nixpkgs.legacyPackages.${system};
@@ -52,8 +45,6 @@
             # tools
             halmos
             hevm.packages.${system}.default
-            kevm.packages.${system}.default
-            echidna.packages.${system}.default
             foundry.defaultPackage.${system}
             pkgs.solc
 

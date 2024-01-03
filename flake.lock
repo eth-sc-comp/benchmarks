@@ -158,11 +158,11 @@
     "halmos-src": {
       "flake": false,
       "locked": {
-        "lastModified": 1695786578,
-        "narHash": "sha256-T88s+5od7SXzxU30RhBcHhIZn5N1K90McDILch5Z6JQ=",
+        "lastModified": 1701936677,
+        "narHash": "sha256-558SUXY6owSSv89eSSkHSHgDExSdlJCdpf1IrXmgo10=",
         "owner": "a16z",
         "repo": "halmos",
-        "rev": "c1a175f28a5fb5bdf5d9204a7b12e5091f90b6ac",
+        "rev": "7bb84d289618165687f7cbb8e844a9590c5a566a",
         "type": "github"
       },
       "original": {
@@ -182,11 +182,11 @@
         "solidity": "solidity"
       },
       "locked": {
-        "lastModified": 1695059034,
-        "narHash": "sha256-LqQBLQ5Pl2xDUKqiiRF1iGRWFxTlgrf4SemusvxsnBM=",
+        "lastModified": 1701794916,
+        "narHash": "sha256-x2ZxIS47yNWddgJUx5SAPxTch4P2/8F1rKcHGYnR06o=",
         "owner": "ethereum",
         "repo": "hevm",
-        "rev": "fb7c953cc108f7b2350d1e8ab7212dcf38f309f2",
+        "rev": "4f3e45567538081a3787cba7327743998a4a34e9",
         "type": "github"
       },
       "original": {

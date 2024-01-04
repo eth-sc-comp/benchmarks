@@ -26,6 +26,10 @@ fi
 
 set +x
 
+if [[ $out =~ "WARNING:Halmos:Counterexample: unknown" ]]; then
+  exit 1
+fi
+
 if [[ $out =~ "Traceback" ]]; then
   exit 1
 fi

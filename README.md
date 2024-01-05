@@ -143,3 +143,29 @@ bytecode directly from the respective build outputs.
 Check out the examples for `hevm` and `halmos` in the repository for examples.
 Note that in order for others to run your tool, it needs to be added to
 `flake.nix`.
+
+## Categories
+
+- conformance: should be easy, test correctness only
+- performance: should be hard
+
+[ ] loops
+[ ] calls
+[ ] constructors
+[x] arithmetic
+[x] bitwise
+[ ] cheatcodes
+[ ] memory
+[ ] storage
+[ ] keccak
+[ ] address modeling
+
+- real world:
+  - erc20
+  - halmos test suite
+  - deposit
+  - amm
+  - uni-v2
+  - makerdao vat
+  - forge-std test suite
+  - other interesting foundry projects

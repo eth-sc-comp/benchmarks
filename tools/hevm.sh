@@ -17,9 +17,9 @@ source "$SCRIPT_DIR/utils.sh"
 
 if [[ "${ds_test}" == "0" ]]; then
     code=$(get_runtime_bytecode "${contract_file}" "${contract_name}")
-    out=$(runlim --real-time-limit="${tout}" --space-limit="${memout}" --kill-delay=2 hevm symbolic --max-iterations=1 --code "${code}" --sig "${sig}" "$@" 2>&1)
+    out=$(runlim --real-time-limit="${tout}" --space-limit="${memout}" --kill-delay=2 hevm symbolic --max-iterations=10 --code "${code}" --sig "${sig}" "$@" 2>&1)
 elif [[ "${ds_test}" == "1" ]]; then
-    out=$(runlim --real-time-limit="${tout}" --space-limit="${memout}" --kill-delay=2 hevm test --max-iterations=1 --match "${contract_file}.*${fun_name}" "$@" 2>&1)
+    out=$(runlim --real-time-limit="${tout}" --space-limit="${memout}" --kill-delay=2 hevm test --max-iterations=10 --match "${contract_file}.*${fun_name}" "$@" 2>&1)
 else
     echo "Called incorrectly"
     exit 1
@@ -38,8 +38,8 @@ fi
 set +x
 
 if [[ $out =~ "No reachable assertion violations, but all branches reverted" ]]; then
-    echo "result: safe"
-    exit 0
+  echo "result: safe"
+  exit 0
 fi
 
 if [[ $out =~ "[FAIL]" ]]; then
@@ -48,8 +48,8 @@ if [[ $out =~ "[FAIL]" ]]; then
 fi
 
 if [[ $out =~ "hevm was only able to partially explore the given contract" ]]; then
-    echo "unknown"
-    exit 0
+  echo "unknown"
+  exit 0
 fi
 
 if [[ $out =~ "[PASS]" ]]; then

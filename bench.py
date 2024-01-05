@@ -33,7 +33,7 @@ def build_forge() -> None:
         ret = subprocess.run(cmd_line, capture_output=True)
         if ret.returncode != 0:
             print("Forge returned error(s)")
-            print(printable_output(ret.stderr))
+            print(printable_output(ret.stderr.decode("utf-8")))
             exit(-1)
         ret.check_returncode()
 

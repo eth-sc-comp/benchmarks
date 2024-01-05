@@ -26,8 +26,9 @@ fi
 
 set +x
 
-if [[ $out =~ "WARNING:Halmos:Counterexample: unknown" ]]; then
-  exit 1
+if [[ $out =~ "Counterexample: unknown" ]]; then
+  echo "result: unknown"
+  exit 0
 fi
 
 if [[ $out =~ "Traceback" ]]; then

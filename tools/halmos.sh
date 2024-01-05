@@ -34,6 +34,11 @@ if [[ $out =~ "Traceback" ]]; then
   exit 1
 fi
 
+if [[ $out =~ "Encountered symbolic memory offset" ]]; then
+  echo "result: unknown"
+  exit 0
+fi
+
 if [[ $out =~ "[FAIL]" ]]; then
   echo "result: unsafe"
   exit 0

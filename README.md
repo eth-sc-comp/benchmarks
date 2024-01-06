@@ -157,7 +157,9 @@ Note that in order for others to run your tool, it needs to be added to
 [ ] cheatcodes
 [ ] memory
 [ ] storage
-[ ] keccak
+[x] keccak
+[ ] calldata
+[ ] returndata
 [ ] address modeling
 
 - real world:

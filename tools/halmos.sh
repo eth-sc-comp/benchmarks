@@ -31,6 +31,11 @@ if [[ $out =~ "Counterexample: unknown" ]]; then
   exit 0
 fi
 
+if [[ $out =~ "Encountered symbolic CALLDATALOAD offset" ]]; then
+  echo "result: unknown"
+  exit 0
+fi
+
 if [[ $out =~ "Traceback" ]]; then
   exit 1
 fi

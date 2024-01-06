@@ -155,10 +155,10 @@ Note that in order for others to run your tool, it needs to be added to
 [x] arithmetic
 [x] bitwise
 [ ] cheatcodes
-[ ] memory
+[x] memory
 [ ] storage
 [x] keccak
-[ ] calldata
+[x] calldata
 [ ] returndata
 [ ] address modeling
 

@@ -41,6 +41,11 @@ if [[ $out =~ "Encountered symbolic CALLDATALOAD offset" ]]; then
   exit 0
 fi
 
+if [[ $out =~ "paths have not been fully explored due to the loop unrolling bound" ]]; then
+  echo "result: unknown"
+  exit 0
+fi
+
 if [[ $out =~ "Traceback" ]]; then
   exit 1
 fi

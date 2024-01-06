@@ -17,9 +17,9 @@ source "$SCRIPT_DIR/utils.sh"
 
 if [[ "${ds_test}" == "0" ]]; then
     code=$(get_runtime_bytecode "${contract_file}" "${contract_name}")
-    out=$(runlim --real-time-limit="${tout}" --space-limit="${memout}" --kill-delay=2 hevm symbolic --max-iterations=10 --code "${code}" --sig "${sig}" "$@" 2>&1)
+    out=$(runlim --real-time-limit="${tout}" --space-limit="${memout}" --kill-delay=2 hevm symbolic --max-iterations=2 --code "${code}" --sig "${sig}" "$@" 2>&1)
 elif [[ "${ds_test}" == "1" ]]; then
-    out=$(runlim --real-time-limit="${tout}" --space-limit="${memout}" --kill-delay=2 hevm test --max-iterations=10 --match "${contract_file}.*${fun_name}" "$@" 2>&1)
+    out=$(runlim --real-time-limit="${tout}" --space-limit="${memout}" --kill-delay=2 hevm test --max-iterations=10 --match "${contract_file}.*${fun_name}" --verbose 2 "$@" 2>&1)
 else
     echo "Called incorrectly"
     exit 1

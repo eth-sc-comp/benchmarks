@@ -1,10 +1,9 @@
-// SPDX-License-Identifier: AGPL-3.0-or-later
+// SPDX-License-Identifier: UNLICENSED
+pragma solidity ^0.8.13;
 
-pragma solidity ^0.8.17;
+import {DSTest} from "ds-test/test.sol";
 
-import "ds-test/test.sol";
-
-contract PostExample is DSTest {
+contract PostExample {
     bool live;
 
     modifier isLive() {
@@ -28,5 +27,18 @@ contract PostExample is DSTest {
             }
         }
         assert(number != 0);
+    }
+}
+
+contract PostExampleTwoLiveTest is DSTest {
+    PostExample public example;
+
+    function setUp() public {
+        example = new PostExample();
+    }
+
+    function proveBackdoor(bool isLive, uint256 x) public {
+        example.setLive(isLive);
+        example.backdoor(x);
     }
 }

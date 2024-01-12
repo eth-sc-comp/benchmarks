@@ -38,7 +38,7 @@ contract MappingPropertiesSafe is DSTest {
     mapping (uint => bool) auth;
     mapping (address => mapping (address => uint)) allowance;
 
-    function prove_mapping_access(address x, address y) public {
+    function prove_mapping_access0(address x, address y) public {
         require(x != y);
         balances[x] = 1;
         balances[y] = 2;
@@ -95,7 +95,7 @@ contract StructPropertiesSafe is DSTest {
         assert(s.z == c);
     }
 
-    function prove_mapping_access(uint idx, uint val) public {
+    function prove_mapping_access1(uint idx, uint val) public {
         map[idx].x = val;
         map[idx + 1].y = map[idx].x;
         map[idx - 1].z = map[idx + 1].y;

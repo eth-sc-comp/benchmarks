@@ -1,4 +1,6 @@
-contract KeccakProperties {
+import {DSTest} from "ds-test/test.sol";
+
+contract KeccakProperties is DSTest {
 
     // --- injectivity ---
 

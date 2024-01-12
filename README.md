@@ -156,7 +156,7 @@ Note that in order for others to run your tool, it needs to be added to
 [x] bitwise
 [ ] cheatcodes
 [x] memory
-[ ] storage
+[x] storage
 [x] keccak
 [x] calldata
 [ ] returndata
@@ -164,8 +164,10 @@ Note that in order for others to run your tool, it needs to be added to
 
 - real world:
   - erc20
+  - erc721
   - halmos test suite
   - deposit
+  -
   - amm
   - uni-v2
   - makerdao vat

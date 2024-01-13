@@ -68,11 +68,11 @@ contract KeccakProperties is DSTest {
     function prove_large_gaps_uint256(uint x) public {
         uint k0 = uint(keccak256(abi.encodePacked(x)));
         uint k1 = uint(keccak256(abi.encodePacked(x + 1)));
-        assert(k0 - k1 > 10000);
+        unchecked { assert(k0 - k1 > 10000); }
     }
     function prove_large_gaps_int256(int x) public {
         uint k0 = uint(keccak256(abi.encodePacked(x)));
         uint k1 = uint(keccak256(abi.encodePacked(x - 1)));
-        assert(k0 - k1 > 10000);
+        unchecked { assert(k0 - k1 > 10000); }
     }
 }

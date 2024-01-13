@@ -6,7 +6,9 @@ import "ds-test/test.sol";
 contract C is DSTest {
     mapping (uint => mapping (uint => uint)) maps;
 
-    function proveF(uint x, uint y) public view {
+    function proveMappingAccess(uint x, uint y) public {
+        maps[y][0] = x;
+        maps[x][0] = y;
         assert(maps[y][0] == maps[x][0]);
     }
 }

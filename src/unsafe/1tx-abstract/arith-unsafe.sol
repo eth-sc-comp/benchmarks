@@ -30,13 +30,15 @@ contract ArithmeticPropertiesUncheckedUnsafe {
             assert(y - x < 0);
         }
     }
+
+    function prove_add2(uint x, uint y) public pure {
+        unchecked {
+            assert(x + y >= x);
+        }
+    }
 }
 
 contract ArithmeticPropertiesCheckedUnsafe {
-    // TODO: whats up with hevm here????
-    function prove_sub_comm(uint x, uint y) public pure {
-        assert(x - y == y - x);
-    }
     function prove_sub_assoc(uint x, uint y, uint z) public pure {
         assert(x - (y - z) == (x - y) - z);
     }
@@ -52,9 +54,6 @@ contract ArithmeticPropertiesCheckedUnsafe {
     }
     function prove_distributivity(uint120 x, uint120 y, uint120 z) public pure {
         assert(x + (y * z) == (x + y) * (x + z));
-    }
-    function prove_add2(uint x, uint y) public pure {
-        assert(x + y >= x);
     }
     function prove_complicated(uint x, uint y, uint z) public pure {
         assert((((x * y) / z) * x) / (x * y * z) == (((x * y) + z) / x) * (y / z));

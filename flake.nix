@@ -6,7 +6,7 @@
     nixpkgs.url = "github:nixos/nixpkgs";
 
     # tools
-    hevm.url = "github:ethereum/hevm/1e9bcbab4005ec0e232b57eb2967dd642772ccfc";
+    hevm.url = "github:ethereum/hevm";
     foundry.url = "github:shazow/foundry.nix/monthly";
     halmos-src = { url = "github:a16z/halmos"; flake = false; };
     runlim-src = { url = "github:msooseth/runlim"; flake = false; };
@@ -41,6 +41,7 @@
         };
       in rec {
         devShell = pkgs.mkShell {
+          DAPP_SOLC="${pkgs.solc}/bin/solc";
           packages = [
             # tools
             halmos

@@ -50,8 +50,8 @@ contract ERC721ATest is ERC721A, DSTest {
 
         uint newBalanceTo = balanceOf(to);
 
-        assert(newBalanceTo >= oldBalanceTo); // ensuring no overflow
-        assert(newBalanceTo == oldBalanceTo + quantity);
+        assertGt(newBalanceTo, oldBalanceTo); // ensuring no overflow
+        assertEq(newBalanceTo, oldBalanceTo + quantity);
     }
 
     function proveMintOwnershipUpdate(address to, uint quantity, uint _newNextTokenId) public {

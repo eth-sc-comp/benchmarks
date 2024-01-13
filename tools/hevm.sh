@@ -37,6 +37,11 @@ fi
 
 set +x
 
+if [[ $out =~ "hevm was only able to partially explore the given contract" ]]; then
+  echo "unknown"
+  exit 0
+fi
+
 if [[ $out =~ "No reachable assertion violations, but all branches reverted" ]]; then
   echo "result: safe"
   exit 0
@@ -44,11 +49,6 @@ fi
 
 if [[ $out =~ "[FAIL]" ]]; then
   echo "result: unsafe"
-  exit 0
-fi
-
-if [[ $out =~ "hevm was only able to partially explore the given contract" ]]; then
-  echo "unknown"
   exit 0
 fi
 

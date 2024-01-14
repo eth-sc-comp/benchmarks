@@ -61,7 +61,7 @@ contract DepositContract is IDepositContract, ERC165 {
 
     bytes32[DEPOSIT_CONTRACT_TREE_DEPTH] zero_hashes;
 
-    constructor() public {
+    constructor() {
         // Compute hashes in empty sparse Merkle tree
         for (uint height = 0; height < DEPOSIT_CONTRACT_TREE_DEPTH - 1; height++)
             zero_hashes[height + 1] = sha256(abi.encodePacked(zero_hashes[height], zero_hashes[height]));
@@ -168,7 +168,7 @@ contract DepositContract is IDepositContract, ERC165 {
 }
 
 
-contract DepositTest {
+contract DepositTest is DSTest {
     DepositContract deposit = new DepositContract();
 
     // we used fixed size types to make life easier and since this is what the
@@ -183,7 +183,7 @@ contract DepositTest {
         bytes32 deposit_data_root)
     public {
         // assertion in deposit should be unreachable...
-        deposit.deposit(
+        deposit.deposit{ value : 1 ether }(
             abi.encodePacked(pubkey0, pubkey1),
             abi.encodePacked(withdrawal_credentials),
             abi.encodePacked(sig0, sig1, sig2),

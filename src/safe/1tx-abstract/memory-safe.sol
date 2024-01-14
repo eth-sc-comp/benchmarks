@@ -50,8 +50,8 @@ contract MemoryPropertiesSafe {
             mstore(16, y)
             res := mload(0)
         }
-        uint x_top = (x >> 128) << 128;
-        uint y_bottom = (y << 128) >> 128;
-        assert(res == x_top | y_bottom);
+        uint x_bits = (x >> 128) << 128;
+        uint y_bits = (y >> 128);
+        assert(res == x_bits | y_bits);
     }
 }

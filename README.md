@@ -151,7 +151,7 @@ Note that in order for others to run your tool, it needs to be added to
 
 [ ] loops
 [ ] calls
-[ ] constructors
+[x] constructors
 [x] arithmetic
 [x] bitwise
 [ ] cheatcodes

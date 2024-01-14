@@ -167,7 +167,6 @@ Note that in order for others to run your tool, it needs to be added to
   - erc721
   - halmos test suite
   - deposit
-  -
   - amm
   - uni-v2
   - makerdao vat

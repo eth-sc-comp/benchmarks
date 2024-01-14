@@ -163,12 +163,7 @@ Note that in order for others to run your tool, it needs to be added to
 [ ] address modeling
 
 - real world:
-  - erc20
-  - erc721
-  - halmos test suite
-  - deposit
-  - amm
-  - uni-v2
-  - makerdao vat
-  - forge-std test suite
-  - other interesting foundry projects
+  [x] erc20
+  [x] erc721
+  [x] deposit
+  [x] amm

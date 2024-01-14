@@ -3,18 +3,11 @@ pragma solidity ^0.8.19;
 import "ds-test/test.sol";
 import "src/common/erc20.sol";
 
-contract ConstructorArg {
-    address immutable public a;
-    constructor(address _a) {
-        a = _a;
-    }
-}
-
 contract SolidityTestPass is DSTest {
     ERC20 token;
 
     function setUp() public {
-        token = new ERC20("Token", "TKN", 18);
+        token = new ERC20("tkn", "tkn", 18);
     }
 
     function prove_balance(address usr, uint amt) public {

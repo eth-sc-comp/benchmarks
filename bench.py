@@ -49,15 +49,10 @@ available_tools = {
         "version": "tools/hevm_version.sh",
         "extra_opts": ["--solver","z3"],
     },
-    "hevm-cvc5-abst-mem": {
+    "hevm-bitwuzla": {
         "call": "tools/hevm.sh",
         "version": "tools/hevm_version.sh",
-        "extra_opts": ["--solver", "cvc5", "--abstract-memory"],
-    },
-    "hevm-z3-abst-mem": {
-        "call": "tools/hevm.sh",
-        "version": "tools/hevm_version.sh",
-        "extra_opts": ["--solver","z3", "--abstract-memory"],
+        "extra_opts": ["--solver","bitwuzla"],
     },
     "halmos": {
         "call": "tools/halmos.sh",

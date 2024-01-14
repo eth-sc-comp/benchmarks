@@ -62,7 +62,7 @@ def gen_cdf_files() -> list[tuple[str, str, int]]:
             f.write(".headers off\n")
             f.write(".mode csv\n")
             f.write(".output "+fname_csv+"\n")
-            f.write("select t from results where solver='"+solver+"'\n and result!='unknown'")
+            f.write("select t from results where solver='"+solver+"'\n and result!='unknown' and correct!=false")
         os.system("sqlite3 results.db < %s" % fname_csv_gen)
         unlink(fname_csv_gen)
 

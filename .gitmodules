@@ -4,3 +4,6 @@
 [submodule "lib/ERC721A"]
 	path = lib/ERC721A
 	url = https://github.com/d-xo/ERC721A
+[submodule "lib/consensus-specs"]
+	path = lib/consensus-specs
+	url = https://github.com/ethereum/consensus-specs

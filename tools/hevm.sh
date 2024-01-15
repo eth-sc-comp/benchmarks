@@ -9,6 +9,13 @@ sig="$1"; shift
 ds_test="$1"; shift
 tout="$1"; shift
 memout="$1"; shift
+dump_smt="$1"; shift
+
+extra_params=""
+if [[ "$dump_smt" == "1" ]]; then
+    extra_params="${extra_params} --smtdebug"
+fi
+
 
 rm -f ./*.smt2
 
@@ -17,22 +24,25 @@ source "$SCRIPT_DIR/utils.sh"
 
 if [[ "${ds_test}" == "0" ]]; then
     code=$(get_runtime_bytecode "${contract_file}" "${contract_name}")
-    out=$(runlim --real-time-limit="${tout}" --space-limit="${memout}" --kill-delay=2 hevm symbolic --max-iterations=1 --code "${code}" --sig "${sig}" "$@" 2>&1)
+    out=$(runlim --real-time-limit="${tout}" --space-limit="${memout}" --kill-delay=2 hevm symbolic --max-iterations=1 --code "${code}" --sig "${sig}" ${extra_params} "$@" 2>&1)
 elif [[ "${ds_test}" == "1" ]]; then
-    out=$(runlim --real-time-limit="${tout}" --space-limit="${memout}" --kill-delay=2 hevm test --max-iterations=1 --match "${contract_file}.*${fun_name}" "$@" 2>&1)
+    out=$(runlim --real-time-limit="${tout}" --space-limit="${memout}" --kill-delay=2 hevm test --max-iterations=1 --match "${contract_file}.*${fun_name}" ${extra_params} "$@" 2>&1)
 else
     echo "Called incorrectly"
     exit 1
 fi
 
+
 # Check if we emitted smt2 files. If so, copy them over to a
 # directory based on the contract file & name
-shopt -s nullglob
-set -- *.smt2
-if [ "$#" -gt 0 ]; then
-  dir="hevm-smt2/${contract_file}.${contract_name}/"
-  mkdir -p "$dir"
-  mv -f ./*.smt2 "$dir/"
+if [[ "$dump_smt" == "1" ]]; then
+    shopt -s nullglob
+    set -- *.smt2
+    if [ "$#" -gt 0 ]; then
+      dir="hevm-smt2/${contract_file}.${contract_name}/"
+      mkdir -p "$dir"
+      mv -f ./*.smt2 "$dir/"
+    fi
 fi
 
 set +x

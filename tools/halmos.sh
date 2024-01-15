@@ -30,7 +30,6 @@ if [[ "$dump_smt" == "1" ]] && [[ "$out" =~ "Generating SMT" ]]; then
     dir="halmos-smt2/${contract_file}.${contract_name}/"
     mkdir -p "$dir"
     mv -f ${outdir}/*.smt2 "$dir/"
-    set -x
 fi
 
 if [[ $out =~ "WARNING:Halmos:Counterexample: unknown" ]]; then

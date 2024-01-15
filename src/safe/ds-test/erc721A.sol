@@ -3,7 +3,7 @@
 import 'lib/ERC721A/contracts/ERC721A.sol';
 import {DSTest} from "ds-test/test.sol";
 
-contract ERC721ATest is ERC721A, DSTest {
+contract ERC721ATest is DSTest, ERC721A {
 
     constructor() ERC721A("TKN", "TKN") { }
 

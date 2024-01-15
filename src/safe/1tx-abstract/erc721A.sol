@@ -1,9 +1,8 @@
 // SPDX-License-Identifier: MIT
 
 import 'lib/ERC721A/contracts/ERC721A.sol';
-import {DSTest} from "ds-test/test.sol";
 
-contract ERC721ATest is DSTest, ERC721A {
+contract ERC721ATest is ERC721A {
 
     constructor() ERC721A("TKN", "TKN") { }
 
@@ -15,16 +14,12 @@ contract ERC721ATest is DSTest, ERC721A {
     // mint
     //
 
-    // TODO: duplicate spec for _mintERC2309 and _safeMint
     function mint(address to, uint quantity) public {
         _mint(to, quantity);
-      //_mintERC2309(to, quantity);
-      //_safeMint(to, quantity);
-      //_safeMint(to, quantity, data);
     }
 
     function proveMintRequirements(address to, uint quantity) public {
-        mint(to, quantity);
+        _mint(to, quantity);
 
         assert(to != address(0));
         assert(quantity > 0);
@@ -42,7 +37,7 @@ contract ERC721ATest is DSTest, ERC721A {
         assert(newNextTokenId == oldNextTokenId + quantity);
     }
 
-    function proveMintBalanceUpdate(address to, uint quantity) public {
+    function proveMintBalanceUpdate(address to, uint quantity, uint tokenId) public {
         uint oldBalanceTo = balanceOf(to);
         require(oldBalanceTo <= type(uint64).max / 2); // practical assumption needed for balance staying within uint64
 
@@ -50,8 +45,8 @@ contract ERC721ATest is DSTest, ERC721A {
 
         uint newBalanceTo = balanceOf(to);
 
-        assertGt(newBalanceTo, oldBalanceTo); // ensuring no overflow
-        assertEq(newBalanceTo, oldBalanceTo + quantity);
+        assert(newBalanceTo > oldBalanceTo); // ensuring no overflow
+        assert(newBalanceTo == oldBalanceTo + quantity);
     }
 
     function proveMintOwnershipUpdate(address to, uint quantity, uint _newNextTokenId) public {
@@ -278,6 +273,7 @@ contract ERC721ATest is DSTest, ERC721A {
 
     function proveTransferBalanceUnchanged(address from, address to, uint tokenId) public {
         require(from == to); // consider self-transfer case
+        mint(from, 1);
 
         uint oldBalance = balanceOf(from); // == balanceOf(to);
 

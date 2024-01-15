@@ -7,12 +7,13 @@
 
     # tools
     hevm.url = "github:ethereum/hevm/de2f8c14c35ef737947b88c303867054882b839f";
+    kontrol.url = "github:runtimeverification/kontrol";
     foundry.url = "github:shazow/foundry.nix/monthly";
     halmos-src = { url = "github:a16z/halmos"; flake = false; };
     runlim-src = { url = "github:msooseth/runlim"; flake = false; };
   };
 
-  outputs = { self, nixpkgs, flake-utils, hevm, foundry, halmos-src, runlim-src }:
+  outputs = { self, nixpkgs, flake-utils, hevm, kontrol, foundry, halmos-src, runlim-src }:
     flake-utils.lib.eachDefaultSystem (system:
       let
         pkgs = nixpkgs.legacyPackages.${system};
@@ -37,7 +38,7 @@
               --replace "\"z3-solver\"," "" \
           '';
           buildInputs = with pkgs.python3.pkgs; [ setuptools ];
-          propagatedBuildInputs = with pkgs.python3.pkgs; [ crytic-compile z3 ];
+          propagatedBuildInputs = with pkgs.python3.pkgs; [ setuptools z3 ];
         };
       in rec {
         devShell = pkgs.mkShell {
@@ -45,14 +46,15 @@
           packages = [
             # tools
             halmos
-            hevm.packages.${system}.default
+            hevm.packages.${system}.noTests
+            kontrol.packages.${system}.default
             foundry.defaultPackage.${system}
             pkgs.solc
 
             # python stuff
             pkgs.black
             pkgs.ruff
-            (pkgs.python3.withPackages(ps : with ps; [ crytic-compile ]))
+            pkgs.python3
 
             # shell script deps
             pkgs.jq

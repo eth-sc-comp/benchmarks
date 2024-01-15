@@ -21,8 +21,6 @@ else
     exit 1
 fi
 
-out=$(runlim --real-time-limit="${tout}" --kill-delay=2 --space-limit="${memout}" halmos --function "${fun_name}" --contract "${contract_name}" "$@" 2>&1)
-
 # Check if we emitted smt2 files. If so, copy them over to a
 # directory based on the contract file & name
 shopt -s nullglob

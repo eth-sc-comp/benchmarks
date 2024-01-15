@@ -37,6 +37,21 @@ def build_forge() -> None:
             exit(-1)
         ret.check_returncode()
 
+# TODO: this setup time should be reflected in the kontrol results somehow
+def build_kontrol() -> None:
+    if not ("kontrol" in get_tools_used()):
+        return None
+    if opts.norebuild:
+        return None
+
+    print("Building with kontrol...")
+    cmd_line = ["kontrol", "build"]
+    ret = subprocess.run(cmd_line, capture_output=True)
+    if ret.returncode != 0:
+        print("Kontrol returned error(s)")
+        print(printable_output(ret.stderr.decode("utf-8")))
+        exit(-1)
+    ret.check_returncode()
 
 available_tools = {
     "hevm-cvc5": {
@@ -57,6 +72,11 @@ available_tools = {
     "halmos": {
         "call": "tools/halmos.sh",
         "version": "tools/halmos_version.sh",
+        "extra_opts": [],
+    },
+    "kontrol": {
+        "call": "tools/kontrol.sh",
+        "version": "tools/kontrol_version.sh",
         "extra_opts": [],
     }
 }
@@ -147,12 +167,13 @@ class Case:
 # multiple contracts
 def gather_cases() -> list[Case]:
     build_forge()
+    build_kontrol()
     # build a dictionary where the key is a directory in the foundry build
     # output, and the value is a list of contract names defined within
     output_jsons = {
         str(f): [j.stem for j in f.glob("*.json")]
         for f in Path("./out").iterdir()
-        if f.is_dir()
+        if f.is_dir() and f.name != "kompiled"
     }
 
     # replace the path to the output json with the path to the original solidity file

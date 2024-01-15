@@ -32,7 +32,6 @@ else
     exit 1
 fi
 
-
 # Check if we emitted smt2 files. If so, copy them over to a
 # directory based on the contract file & name
 if [[ "$dump_smt" == "1" ]]; then

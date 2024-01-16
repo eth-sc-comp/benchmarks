@@ -1,6 +1,6 @@
 import {DSTest} from "ds-test/test.sol";
 
-contract CalldataProperties is DSTest {
+contract CalldataPropertiesUnsafe is DSTest {
     // read a symbolic index (less than length)
     function prove_read_symbolic_inbounds_unsafe(uint x, uint) public pure {
         require(x + 32 <= msg.data.length);

@@ -1,6 +1,6 @@
 import {DSTest} from "ds-test/test.sol";
 
-contract LoopsSafe is DSTest {
+contract LoopsUnsafe is DSTest {
     function prove_bounded_smol(uint x) public {
         require (x < 5);
         uint j;

@@ -266,7 +266,7 @@ contract SignedDivisionProperties is DSTest {
     }
 
     function prove_divide_zero_by_anything(int a) public {
-        int result = sdiv(0, b);
+        int result = sdiv(0, a);
         assert(result == 0);
     }
 

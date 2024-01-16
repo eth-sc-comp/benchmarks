@@ -12,7 +12,7 @@ memout="$1"; shift
 
 rm -f ./*.smt2
 
-out=$(runlim --real-time-limit="${tout}" --kill-delay=2 --space-limit="${memout}" kontrol prove --bmc-depth 2 --match-test "${contract_name}.${fun_name}" "$@" 2>&1)
+out=$(runlim --real-time-limit="${tout}" --kill-delay=2 --space-limit="${memout}" kontrol prove --counterexample-information --match-test "${contract_name}.${fun_name}" "$@" 2>&1)
 
 # Check if we emitted smt2 files. If so, copy them over to a
 # directory based on the contract file & name
@@ -28,6 +28,11 @@ set +x
 
 if [[ $out =~ "PROOF PASSED" ]]; then
   echo "result: safe"
+  exit 0
+fi
+
+if [[ $out =~ "PROOF FAILED" ]] && [[ $out =~ "Model:" ]]; then
+  echo "result: unsafe"
   exit 0
 fi
 

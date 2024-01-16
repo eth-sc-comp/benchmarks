@@ -256,21 +256,39 @@ contract MulModProperties is DSTest {
 
 contract SignedDivisionProperties is DSTest {
     // helpers
-    function signedDiv(int a, int b) internal pure returns (int res) {
+    function sdiv(int a, int b) internal pure returns (int res) {
         assembly { res := sdiv(a, b) }
     }
 
     // properties
-    function prove_sign_result(int a, int b) public pure {
-        require(b != 0, "Division by zero is not allowed");
-        int result = signedDiv(a, b);
-        bool expectedSign = (a < 0 && b < 0) || (a > 0 && b > 0);
-        assert((result >= 0 && expectedSign) || (result <= 0 && !expectedSign));
+    function prove_divide_anything_by_zero(int a) public {
+        assert(sdiv(a,0) == 0);
     }
-    function prove_sdiv_rounds_towards_zero(int a, int b) public pure {
-        require(b != 0, "Division by zero is not allowed");
-        int result = signedDiv(a, b);
-        assert((a % b == 0) || (a / b == (a - (a % b)) / b));
+
+    function prove_divide_zero_by_anything(int a) public {
+        int result = sdiv(0, b);
+        assert(result == 0);
+    }
+
+    function prove_divide_positive_by_negative(int a, int b) public {
+        require(a > 0);
+        require(b < 0);
+        int result = sdiv(a, b);
+        assert(result < 0);
+    }
+
+    function prove_divide_negative_by_positive(int a, int b) public {
+        require(a < 0);
+        require(b > 0);
+        int result = sdiv(a, b);
+        assert(result < 0);
+    }
+
+    function prove_divide_negative_by_negative(int a, int b) public {
+        require(a < 0);
+        require(b < 0);
+        int result = sdiv(a, b);
+        assert(result > 0);
     }
 }
 

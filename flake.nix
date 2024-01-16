@@ -46,7 +46,7 @@
           packages = [
             # tools
             halmos
-            hevm.packages.${system}.noTests
+            hevm.packages.${system}.default
             kontrol.packages.${system}.default
             foundry.defaultPackage.${system}
             pkgs.solc

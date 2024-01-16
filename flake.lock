@@ -346,11 +346,11 @@
     "forge-std": {
       "flake": false,
       "locked": {
-        "lastModified": 1705000202,
-        "narHash": "sha256-4JwhG/Jknx9qilWaQQtYo9x0tGPkR3dzkWbhZqamS1g=",
+        "lastModified": 1702656582,
+        "narHash": "sha256-qDC/3x/CfeghsqftBJme4IlNGDG7YgV9cx8I5tc30KA=",
         "owner": "foundry-rs",
         "repo": "forge-std",
-        "rev": "36c303b7ffdd842d06b1ec2744c9b9b5fb3083f3",
+        "rev": "155d547c449afa8715f538d69454b83944117811",
         "type": "github"
       },
       "original": {
@@ -475,11 +475,11 @@
         "solidity": "solidity"
       },
       "locked": {
-        "lastModified": 1705412811,
-        "narHash": "sha256-XXPAY/cdEQWFwVLSPNhc+oADIg1iuG+M5KoFzg1YVBg=",
+        "lastModified": 1705421444,
+        "narHash": "sha256-+NLZWhnuzb5+aLygoyP4YifRMKcf2Giyn+FbdrEwdtU=",
         "owner": "ethereum",
         "repo": "hevm",
-        "rev": "182d9898a2ea1632b03fddede95524340d00ae45",
+        "rev": "6c876b24b61d2c8f8b9919cc668db9a03e6496c8",
         "type": "github"
       },
       "original": {

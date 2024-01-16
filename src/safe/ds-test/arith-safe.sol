@@ -1,4 +1,6 @@
-contract UncheckedAddMulProperties {
+import {DSTest} from "ds-test/test.sol";
+
+contract UncheckedAddMulProperties is DSTest {
     function prove_add_commutative(uint x, uint y) public {
         unchecked {
             assert(x + y == y + x);
@@ -21,7 +23,7 @@ contract UncheckedAddMulProperties {
     }
 }
 
-contract UncheckedDivProperties {
+contract UncheckedDivProperties is DSTest {
     function prove_div_ident(uint x) public pure {
         unchecked {
             assert(x / 1 == x);
@@ -48,7 +50,7 @@ contract UncheckedDivProperties {
     }
 }
 
-contract UnchekedSubProperties {
+contract UnchekedSubProperties is DSTest {
     function prove_sub_inverse(uint x, uint y) public {
         unchecked {
             uint z = x + y;
@@ -68,7 +70,7 @@ contract UnchekedSubProperties {
     }
 }
 
-contract CheckedAddMulProperties {
+contract CheckedAddMulProperties is DSTest {
     function prove_add_commutative(uint x, uint y) public {
         assert(x + y == y + x);
     }
@@ -86,7 +88,7 @@ contract CheckedAddMulProperties {
     }
 }
 
-contract CheckedDivProperties {
+contract CheckedDivProperties is DSTest {
     function prove_div_ident(uint x) public {
         assert(x / 1 == x);
     }
@@ -98,7 +100,7 @@ contract CheckedDivProperties {
     }
 }
 
-contract CheckedSubProperties {
+contract CheckedSubProperties is DSTest {
     function prove_sub_inverse(uint x, uint y) public {
         uint z = x + y;
         assert(z - y == x);
@@ -116,7 +118,7 @@ contract CheckedSubProperties {
     }
 }
 
-contract ModProperties {
+contract ModProperties is DSTest {
     function prove_mod_range(uint x, uint y) public {
         uint res = x % y;
         assert(0 <= res);
@@ -139,7 +141,7 @@ contract ModProperties {
     }
 }
 
-contract AddModProperties {
+contract AddModProperties is DSTest {
     function prove_addmod_range(uint a, uint b, uint N) public pure {
         require(N != 0, "N should be non-zero");
         uint result = addmod(a, b, N);
@@ -200,7 +202,7 @@ contract AddModProperties {
     }
 }
 
-contract MulModProperties {
+contract MulModProperties is DSTest {
     function prove_mulmod_range(uint a, uint b, uint N) public pure {
         require(N != 0, "N should be non-zero");
         uint result = mulmod(a, b, N);
@@ -252,7 +254,7 @@ contract MulModProperties {
 }
 
 
-contract SignedDivisionProperties {
+contract SignedDivisionProperties is DSTest {
     // helpers
     function signedDiv(int a, int b) internal pure returns (int res) {
         assembly { res := sdiv(a, b) }
@@ -272,7 +274,7 @@ contract SignedDivisionProperties {
     }
 }
 
-contract SignedModuloProperties {
+contract SignedModuloProperties is DSTest {
     // helpers
     function signedMod(int a, int b) internal pure returns (int res) {
         require(b != 0, "Modulo by zero is not allowed");
@@ -308,7 +310,7 @@ contract SignedModuloProperties {
     }
 }
 
-contract SignExtendProperties {
+contract SignExtendProperties is DSTest {
     function signExtend(uint8 byteNumber, int256 value) private pure returns (int256 res) {
         assembly {
             res := signextend(byteNumber, value)

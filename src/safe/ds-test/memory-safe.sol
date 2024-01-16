@@ -1,4 +1,6 @@
-contract MemoryPropertiesSafe {
+import {DSTest} from "ds-test/test.sol";
+
+contract MemoryPropertiesSafe is DSTest {
     function prove_load_symbolic_index(uint idx) public {
         uint res;
         assembly { res := mload(idx) }

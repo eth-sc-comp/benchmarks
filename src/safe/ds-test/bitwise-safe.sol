@@ -1,4 +1,6 @@
-contract BitwiseAndProperties {
+import {DSTest} from "ds-test/test.sol";
+
+contract BitwiseAndProperties is DSTest {
     function prove_idempotence(uint a) public pure {
         assert((a & a) == a);
     }
@@ -16,7 +18,7 @@ contract BitwiseAndProperties {
     }
 }
 
-contract BitwiseOrProperties {
+contract BitwiseOrProperties is DSTest {
     function prove_idempotence(uint a) public pure {
         assert((a | a) == a);
     }
@@ -34,7 +36,7 @@ contract BitwiseOrProperties {
     }
 }
 
-contract BitwiseXorProperties {
+contract BitwiseXorProperties is DSTest {
     function prove_idempotence(uint a) public pure {
         assert((a ^ 0) == a);
     }
@@ -56,7 +58,7 @@ contract BitwiseXorProperties {
     }
 }
 
-contract BitwiseNotProperties {
+contract BitwiseNotProperties is DSTest {
     function prove_double_negation(uint a) public pure {
         assert(~~a == a);
     }
@@ -67,7 +69,7 @@ contract BitwiseNotProperties {
     }
 }
 
-contract BitwiseShlProperties {
+contract BitwiseShlProperties is DSTest {
     function prove_zero_shift(uint a) public pure {
         assert((a << 0) == a);
     }
@@ -85,7 +87,7 @@ contract BitwiseShlProperties {
     }
 }
 
-contract BitwiseShrProperties {
+contract BitwiseShrProperties is DSTest {
     function prove_zero_shift(uint a) public pure {
         assert((a >> 0) == a);
     }
@@ -100,7 +102,7 @@ contract BitwiseShrProperties {
 }
 
 // TODO: SAR is so weird, what should the behaviour even be?
-contract BitwiseSarProperties {
+contract BitwiseSarProperties is DSTest {
     function sar(int num, uint shift) internal pure returns (int) {
         int res;
         assembly {

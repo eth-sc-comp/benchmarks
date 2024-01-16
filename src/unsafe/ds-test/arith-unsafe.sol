@@ -1,4 +1,6 @@
-contract ArithmeticPropertiesUncheckedUnsafe {
+import {DSTest} from "ds-test/test.sol";
+
+contract ArithmeticPropertiesUncheckedUnsafe is DSTest {
     function prove_add_mul_distributivity(uint x, uint y, uint z) public pure {
         unchecked {
             assert(x * (y + y) == (x * y) + (x * z));
@@ -38,7 +40,7 @@ contract ArithmeticPropertiesUncheckedUnsafe {
     }
 }
 
-contract ArithmeticPropertiesCheckedUnsafe {
+contract ArithmeticPropertiesCheckedUnsafe is DSTest {
     function prove_sub_assoc(uint x, uint y, uint z) public pure {
         assert(x - (y - z) == (x - y) - z);
     }

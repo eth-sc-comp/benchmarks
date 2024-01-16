@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: MIT
 
-pragma solidity >=0.8.9;
+import {DSTest} from "ds-test/test.sol";
 
-contract AssertTrue {
+contract AssertTrue is DSTest {
     function prove_assert_true() public pure {
         assert(true);
     }

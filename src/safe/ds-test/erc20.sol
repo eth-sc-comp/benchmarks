@@ -1,5 +1,3 @@
-pragma solidity ^0.8.19;
-
 import "ds-test/test.sol";
 import "src/common/erc20.sol";
 

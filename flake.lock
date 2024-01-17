@@ -19,17 +19,17 @@
     },
     "bitwuzla-pkgs": {
       "locked": {
-        "lastModified": 1705259768,
-        "narHash": "sha256-eHetoB0ckEQ06QDa7EZqeC+qFJEC606K90q/PliNTA4=",
+        "lastModified": 1705518710,
+        "narHash": "sha256-4AV1Q3YEYakWcsu3nSX3U0hXZAcir0maGFrG5sEU/Kk=",
         "owner": "d-xo",
         "repo": "nixpkgs",
-        "rev": "6e7c9e4267f3c2df116bf76d8e31c2602e2d543d",
+        "rev": "94e802bce3a1bc05b3acfc5e876de15fd2ecb564",
         "type": "github"
       },
       "original": {
         "owner": "d-xo",
         "repo": "nixpkgs",
-        "rev": "6e7c9e4267f3c2df116bf76d8e31c2602e2d543d",
+        "rev": "94e802bce3a1bc05b3acfc5e876de15fd2ecb564",
         "type": "github"
       }
     },
@@ -475,15 +475,16 @@
         "solidity": "solidity"
       },
       "locked": {
-        "lastModified": 1705422682,
-        "narHash": "sha256-XefjSfI6z/tsOyLPoUIj6fbzliuCgaeyD2Jm0X+qRwo=",
+        "lastModified": 1705518878,
+        "narHash": "sha256-OT/u7PcK0CAt4P+hMQzscJB5cJ9fsnIdjo274mJc8Ac=",
         "owner": "ethereum",
         "repo": "hevm",
-        "rev": "38750e6a7a8469e763e40a646dbc582ffc6199bc",
+        "rev": "b419c12829f65391ee1423cedb215480718bf28b",
         "type": "github"
       },
       "original": {
         "owner": "ethereum",
+        "ref": "bitwuzla-main",
         "repo": "hevm",
         "type": "github"
       }

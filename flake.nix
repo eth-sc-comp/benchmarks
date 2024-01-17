@@ -6,7 +6,7 @@
     nixpkgs.url = "github:nixos/nixpkgs";
 
     # tools
-    hevm.url = "github:ethereum/hevm";
+    hevm.url = "github:ethereum/hevm/bitwuzla-main";
     kontrol.url = "github:runtimeverification/kontrol";
     foundry.url = "github:shazow/foundry.nix/monthly";
     halmos-src = { url = "github:a16z/halmos"; flake = false; };

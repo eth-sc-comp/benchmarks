@@ -13,7 +13,7 @@ memout="$1"; shift
 rm -f ./*.smt2
 
 if [[ "${ds_test}" == "0" ]]; then
-    out=$(runlim --real-time-limit="${tout}" --kill-delay=2 --space-limit="${memout}" halmos --function "${fun_name}" --contract "${contract_name}" --symbolic-storage "$@" 2>&1)
+    out=$(runlim --real-time-limit="${tout}" --kill-delay=2 --space-limit="${memout}" halmos --function "${fun_name}" --contract "${contract_name}" --symbolic-storage --symbolic-msg-sender"$@" 2>&1)
 elif [[ "${ds_test}" == "1" ]]; then
     out=$(runlim --real-time-limit="${tout}" --kill-delay=2 --space-limit="${memout}" halmos --function "${fun_name}" --contract "${contract_name}" "$@" 2>&1)
 else

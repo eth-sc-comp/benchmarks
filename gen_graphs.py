@@ -123,7 +123,7 @@ def gen_comparative_graphs() -> None:
                         f.write("%f %f %s\n" % (solver1_t, solver2_t, name))
 
             # generate plot
-            fname_gnuplot = "compare.gnuplot"
+            fname_gnuplot = "compare-%s-vs-%s.gnuplot" % (solver, solver2)
             os.system("rm -f \"%s\"" % fname_gnuplot)
             for t in ["eps", "png"]:
                 name = genplot(t)
@@ -292,6 +292,8 @@ def set_up_parser() -> optparse.OptionParser:
                       dest="box_only", help="Only generate box graph")
     parser.add_option("--cdf", action="store_true", default=False,
                       dest="cdf_only", help="Only generate CDF graph")
+    parser.add_option("--comp", action="store_true", default=False,
+                      dest="comp_only", help="Only generate comparative graph(s)")
 
     return parser
 
@@ -305,14 +307,14 @@ def main() -> None:
     parser = set_up_parser()
     global opts
     (opts, _) = parser.parse_args()
-    only_some : bool = opts.cdf_only or opts.box_only
+    only_some : bool = opts.cdf_only or opts.box_only or opts.comp_only
 
     check_all_same_tout()
     if not only_some or opts.cdf_only:
         gen_cdf_graph()
     if not only_some or opts.box_only:
         gen_boxgraphs()
-    if not only_some:
+    if not only_some or opts.comp_only:
         gen_comparative_graphs()
 
 

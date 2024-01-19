@@ -52,26 +52,21 @@ contract MiniVat {
 contract MiniVatTest is DSTest {
     MiniVat public vat;
 
-    function setUp() public {
+    constructor() {
         vat = new MiniVat();
         vat.init();
     }
 
-    function proveInvariantFixed() public {
-        vat.frob(10 ** 18);
-        vat.fold(-10 ** 27);
-        vat.init();
-
-        (uint Art, uint rate, uint debt) = vat.getValues();
-        assert(debt == Art * rate);
-    }
-
-    function proveInvariantSymb(int256 frob, int256 fold) public {
+    function prove_invariant_symb(int256 frob, int256 fold) public {
         vat.frob(frob);
         vat.fold(fold);
         vat.init();
 
         (uint Art, uint rate, uint debt) = vat.getValues();
         assert(debt == Art * rate);
+    }
+
+    function prove_invariant_fixed() public {
+        prove_invariant_symb(10 ** 18, -10 ** 27);
     }
 }

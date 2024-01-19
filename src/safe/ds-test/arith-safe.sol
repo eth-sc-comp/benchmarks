@@ -84,7 +84,7 @@ contract CheckedAddMulProperties is DSTest {
         assert(x * (y * z) == (x * y) * z);
     }
     function prove_add_mul_distributivity(uint x, uint y, uint z) public {
-        assert(x * (y + y) == (x * y) + (x * z));
+        assert(x * (y + z) == (x * y) + (x * z));
     }
 }
 
@@ -270,32 +270,38 @@ contract SignedDivisionProperties is DSTest {
         assert(result == 0);
     }
 
+    function prove_divide_positive_by_positive(int a, int b) public {
+        require(a > 0);
+        require(b > 0);
+        int result = sdiv(a, b);
+        assert(result >= 0);
+    }
+
     function prove_divide_positive_by_negative(int a, int b) public {
         require(a > 0);
         require(b < 0);
         int result = sdiv(a, b);
-        assert(result < 0);
+        assert(result <= 0);
     }
 
     function prove_divide_negative_by_positive(int a, int b) public {
         require(a < 0);
         require(b > 0);
         int result = sdiv(a, b);
-        assert(result < 0);
+        assert(result <= 0);
     }
 
     function prove_divide_negative_by_negative(int a, int b) public {
         require(a < 0);
         require(b < 0);
         int result = sdiv(a, b);
-        assert(result > 0);
+        assert(result >= 0);
     }
 }
 
 contract SignedModuloProperties is DSTest {
     // helpers
-    function signedMod(int a, int b) internal pure returns (int res) {
-        require(b != 0, "Modulo by zero is not allowed");
+    function smod(int a, int b) internal pure returns (int res) {
         assembly { res := smod(a, b) }
     }
     function abs(int x) internal pure returns (int) {
@@ -304,27 +310,25 @@ contract SignedModuloProperties is DSTest {
 
 
     // properties
-    function prove_sign_result(int a, int b) public pure {
-        require(b != 0, "Modulo by zero is not allowed");
-        int result = signedMod(a, b);
-        bool expectedSign = b > 0;
-        assert((result >= 0 && expectedSign) || (result <= 0 && !expectedSign));
+    function prove_smod_by_zero(int a) public pure {
+        int res = smod(a,0);
+        assert(res == 0);
     }
     function prove_range(int a, int b) public pure {
         require(b != 0, "Modulo by zero is not allowed");
-        int result = signedMod(a, b);
+        int result = smod(a, b);
         assert(abs(result) < abs(b));
     }
     function prove_smod_non_comm(int a, int b) public pure {
         require(b != 0 && a != 0, "One of the values is zero");
-        int resultA = signedMod(a, b);
-        int resultB = signedMod(b, a);
+        int resultA = smod(a, b);
+        int resultB = smod(b, a);
         assert(resultA != resultB || abs(a) == abs(b));
     }
     function prove_smod_preserves_sign(int a, int b) public pure {
         require(b != 0, "Modulo by zero is not allowed");
-        int result = signedMod(a, b);
-        assert((b > 0 && result >= 0) || (b < 0 && result <= 0));
+        int result = smod(a, b);
+        assert((a > 0 && result >= 0) || (a < 0 && result <= 0));
     }
 }
 

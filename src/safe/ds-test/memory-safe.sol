@@ -81,13 +81,13 @@ contract MemoryPropertiesSafe is DSTest {
     }
 
     function prove_read_stacked_write_non_aligned_sym_idx(uint idx, uint x, uint y) public {
-        require(idx < type(uint32).max);
+        require(idx < type(uint16).max);
         uint res;
         uint half_word = idx + 16;
         assembly {
             mstore(idx, x)
             mstore(half_word, y)
-            res := mload(0)
+            res := mload(idx)
         }
         uint x_bits = (x >> 128) << 128;
         uint y_bits = (y >> 128);

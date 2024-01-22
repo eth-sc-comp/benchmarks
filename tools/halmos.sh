@@ -14,7 +14,6 @@ dump_smt="$1"; shift
 extra_params=""
 if [[ "$dump_smt" == "1" ]]; then
     extra_params="${extra_params} --dump-smt-queries"
-    rm -f ./*.smt2
 fi
 
 

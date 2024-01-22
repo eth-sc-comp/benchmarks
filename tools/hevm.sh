@@ -14,10 +14,10 @@ dump_smt="$1"; shift
 extra_params=""
 if [[ "$dump_smt" == "1" ]]; then
     extra_params="${extra_params} --smtdebug"
+    rm -f ./*.smt2
 fi
 
 
-rm -f ./*.smt2
 
 SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 source "$SCRIPT_DIR/utils.sh"

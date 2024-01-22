@@ -76,7 +76,28 @@ def gen_cdf_files() -> list[tuple[str, str, int]]:
 # Generates graphs with 2 solvers on X/Y axis and the dots representing problems that were solved
 # by the different solvers.
 def gen_comparative_graphs() -> None:
+    def get_timeout(solver, solver2) -> int:
+        with sqlite3.connect("results.db") as cur:
+            ret = cur.execute("""
+            select tout
+            from results
+            where solver='%s' or solver='%s'
+            group by tout""" % (solver, solver2))
+            tout = None
+            for line in ret:
+                if tout is None:
+                    tout = int(line[0])
+                else:
+                    print("Error, the two solvers, '%s' and '%s' are incomparable" % (solver, solver2));
+                    print(" --> they were run with different timeouts")
+                    exit(-1)
+            if tout is None:
+                print("Error, timeout couldn't be found for solvers '%s' and '%s'" %(solver, solver2))
+                print("  ---> were they not run?")
+                exit(-1)
+        return tout
     def genplot(t : str, solver:str, solver2:str) -> str:
+        timeout = get_timeout(solver, solver2)
         fname = solver+"-vs-"+solver2+"." + t
         with open(fname_gnuplot, "a") as f:
             if t == "eps":
@@ -101,7 +122,7 @@ def gen_comparative_graphs() -> None:
             f.write("set ylabel  \""+solver2+"\"\n")
             f.write("f(x) = x\n")
             if opts.pretty_graphs:
-                f.write("plot[0.001:300][0.001:300] \\\n")
+                f.write("plot[0.001:{tout}][0.001:{tout}] \\\n".format(tout = timeout))
             else:
                 f.write("plot[0.001:] \\\n")
             f.write("\""+fname_gnuplot_data+"\" u 1:2 with points pt 9\\\n")

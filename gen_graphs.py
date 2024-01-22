@@ -121,10 +121,7 @@ def gen_comparative_graphs() -> None:
             f.write("set xlabel  \""+solver+"\"\n")
             f.write("set ylabel  \""+solver2+"\"\n")
             f.write("f(x) = x\n")
-            if opts.pretty_graphs:
-                f.write("plot[0.001:{tout}][0.001:{tout}] \\\n".format(tout = timeout))
-            else:
-                f.write("plot[0.001:] \\\n")
+            f.write("plot[0.001:{tout}][0.001:{tout}] \\\n".format(tout = timeout))
             f.write("\""+fname_gnuplot_data+"\" u 1:2 with points pt 9\\\n")
             f.write(",f(x) with lines ls 2 title \"y=x\"\n")
             f.write("\n")

@@ -24,11 +24,11 @@ out=$(runlim --real-time-limit="${tout}" --kill-delay=2 --space-limit="${memout}
 # directory based on the contract file & name
 set +x
 if [[ "$dump_smt" == "1" ]] && [[ "$out" =~ "Generating SMT" ]]; then
-    a="s/^Generating SMT queries in \\(.*\\)/\\1/"
-    outdir=$(echo "$out" | grep "Generating SMT" | sed -e "${a}")
-    dir="halmos-smt2/${contract_file}.${contract_name}/"
+    regexp="s/^Generating SMT queries in \\(.*\\)/\\1/"
+    smtdir=$(echo "$out" | grep "Generating SMT" | sed -e "${regexp}")
+    outdir="halmos-smt2/${contract_file}.${contract_name}/"
     mkdir -p "$dir"
-    mv -f ${outdir}/*.smt2 "$dir/"
+    mv -f ${smtdir}/*.smt2 "${outdir}/"
 fi
 
 if [[ $out =~ "WARNING:Halmos:Counterexample: unknown" ]]; then

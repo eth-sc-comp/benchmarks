@@ -12,6 +12,12 @@ memout="$1"; shift
 
 rm -f ./*.smt2
 
+# kontrol can't do symbolic storage yet
+if [[ "${ds_test}" == "0" ]]; then
+  echo "result: unknown"
+  exit 0
+fi
+
 out=$(runlim --real-time-limit="${tout}" --kill-delay=2 --space-limit="${memout}" kontrol prove --counterexample-information --match-test "${contract_name}.${fun_name}" "$@" 2>&1)
 
 # Check if we emitted smt2 files. If so, copy them over to a

@@ -3,6 +3,7 @@
 import os
 import sqlite3
 import optparse
+import re
 
 
 def unlink(fname):
@@ -75,11 +76,35 @@ def gen_cdf_files() -> list[tuple[str, str, int]]:
 # Generates graphs with 2 solvers on X/Y axis and the dots representing problems that were solved
 # by the different solvers.
 def gen_comparative_graphs() -> None:
-    def genplot(t : str) -> str:
+    def get_timeout(solver, solver2) -> int:
+        with sqlite3.connect("results.db") as cur:
+            ret = cur.execute("""
+            select tout
+            from results
+            where solver='%s' or solver='%s'
+            group by tout""" % (solver, solver2))
+            tout = None
+            for line in ret:
+                if tout is None:
+                    tout = int(line[0])
+                else:
+                    print("Error, the two solvers, '%s' and '%s' are incomparable" % (solver, solver2));
+                    print(" --> they were run with different timeouts")
+                    exit(-1)
+            if tout is None:
+                print("Error, timeout couldn't be found for solvers '%s' and '%s'" %(solver, solver2))
+                print("  ---> were they not run?")
+                exit(-1)
+        return tout
+    def genplot(t : str, solver:str, solver2:str) -> str:
+        timeout = get_timeout(solver, solver2)
         fname = solver+"-vs-"+solver2+"." + t
         with open(fname_gnuplot, "a") as f:
             if t == "eps":
-                f.write("set term postscript eps color lw 1 \"Helvetica\" 8 size 6,4\n")
+                if opts.pretty_graphs:
+                    f.write("set term postscript eps color lw 1 \"Helvetica\" 16 size 3,2\n")
+                else:
+                    f.write("set term postscript eps color lw 1 \"Helvetica\" 8 size 6,4\n")
             elif t == "png":
                 f.write("set term png size 600,400\n")
             else:
@@ -90,11 +115,14 @@ def gen_comparative_graphs() -> None:
             f.write("set nokey\n")
             f.write("set logscale x\n")
             f.write("set logscale y\n")
+            if opts.pretty_graphs:
+                solver = re.sub(r"-tstamp.*", "", solver)
+                solver2 = re.sub(r"-tstamp.*", "", solver2)
             f.write("set xlabel  \""+solver+"\"\n")
             f.write("set ylabel  \""+solver2+"\"\n")
             f.write("f(x) = x\n")
-            f.write("plot[0.001:] \\\n")
-            f.write("\""+fname_gnuplot_data+"\" u 1:2 with points\\\n")
+            f.write("plot[0.001:{tout}][0.001:{tout}] \\\n".format(tout = timeout))
+            f.write("\""+fname_gnuplot_data+"\" u 1:2 with points pt 9\\\n")
             f.write(",f(x) with lines ls 2 title \"y=x\"\n")
             f.write("\n")
         return fname
@@ -102,7 +130,7 @@ def gen_comparative_graphs() -> None:
     solvers = get_solvers()
     for solver in solvers:
         for solver2 in solvers:
-            if solver2 <= solver:
+            if solver == solver2:
                 continue
             # create data file
             with sqlite3.connect("results.db") as cur:
@@ -123,10 +151,14 @@ def gen_comparative_graphs() -> None:
                         f.write("%f %f %s\n" % (solver1_t, solver2_t, name))
 
             # generate plot
-            fname_gnuplot = "compare.gnuplot"
+            fname_gnuplot = "compare-%s-vs-%s.gnuplot" % (solver, solver2)
             os.system("rm -f \"%s\"" % fname_gnuplot)
-            for t in ["eps", "png"]:
-                name = genplot(t)
+            if opts.pretty_graphs:
+                todo =  ["eps"]
+            else:
+                todo = ["eps", "png"]
+            for t in todo:
+                name = genplot(t, solver, solver2)
                 print("Generating graph: graphs/%s" % name)
             os.system("gnuplot "+fname_gnuplot)
             unlink(fname_gnuplot)
@@ -141,10 +173,18 @@ def gen_cdf_graph() -> None:
     cdf_files = gen_cdf_files()
     fname_gnuplot = "cdf.gnuplot"
     os.system("rm -f \"%s\"" % fname_gnuplot)
-    for t in ["eps", "png"]:
+    if opts.pretty_graphs:
+        todo =  ["eps"]
+    else:
+        todo = ["eps", "png"]
+
+    for t in todo:
         with open(fname_gnuplot, "a") as f:
             if t == "eps":
-                f.write("set term postscript eps color lw 1 \"Helvetica\" 8 size 4,4\n")
+                if opts.pretty_graphs:
+                    f.write("set term postscript eps color lw 1 \"Helvetica\" 13 size 4,2\n")
+                else:
+                    f.write("set term postscript eps color lw 1 \"Helvetica\" 8 size 4,4\n")
             elif t == "png":
                 f.write("set term png size 800,600\n")
             else:
@@ -161,6 +201,8 @@ def gen_cdf_graph() -> None:
             f.write("plot \\\n")
             towrite = ""
             for fname, solver, _ in cdf_files:
+                if opts.pretty_graphs:
+                    solver = re.sub(r"-tstamp.*", "", solver)
                 towrite += "\""+fname+"\" u 2:1 with linespoints  title \""+solver+"\""
                 towrite += ",\\\n"
             towrite = towrite[:(len(towrite)-4)]
@@ -292,6 +334,10 @@ def set_up_parser() -> optparse.OptionParser:
                       dest="box_only", help="Only generate box graph")
     parser.add_option("--cdf", action="store_true", default=False,
                       dest="cdf_only", help="Only generate CDF graph")
+    parser.add_option("--comp", action="store_true", default=False,
+                      dest="comp_only", help="Only generate comparative graph(s)")
+    parser.add_option("--pretty", action="store_true", default=False,
+                      dest="pretty_graphs", help="Generate pretty, less cluttered graph(s)")
 
     return parser
 
@@ -305,14 +351,14 @@ def main() -> None:
     parser = set_up_parser()
     global opts
     (opts, _) = parser.parse_args()
-    only_some : bool = opts.cdf_only or opts.box_only
+    only_some : bool = opts.cdf_only or opts.box_only or opts.comp_only
 
     check_all_same_tout()
     if not only_some or opts.cdf_only:
         gen_cdf_graph()
     if not only_some or opts.box_only:
         gen_boxgraphs()
-    if not only_some:
+    if not only_some or opts.comp_only:
         gen_comparative_graphs()
 
 

@@ -81,7 +81,7 @@ def gen_comparative_graphs() -> None:
             ret = cur.execute("""
             select tout
             from results
-            where solver='%s' or solver='%s'
+            where solver='%s' or solver='%s' and correct!=false
             group by tout""" % (solver, solver2))
             tout = None
             for line in ret:

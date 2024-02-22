@@ -17,9 +17,9 @@ if [[ "$dump_smt" == "1" ]]; then
 fi
 
 if [[ "${ds_test}" == "0" ]]; then
-    out=$(runlim --real-time-limit="${tout}" --kill-delay=2 --space-limit="${memout}" halmos --function "${fun_name}" --contract "${contract_name}" --symbolic-storage --symbolic-msg-sender"$@" 2>&1)
+    out=$(runlim --real-time-limit="${tout}" --kill-delay=2 --space-limit="${memout}" halmos --function "${fun_name}" --contract "${contract_name}" --symbolic-storage --symbolic-msg-sender ${extra_params} "$@" 2>&1)
 elif [[ "${ds_test}" == "1" ]]; then
-    out=$(runlim --real-time-limit="${tout}" --kill-delay=2 --space-limit="${memout}" halmos --function "${fun_name}" --contract "${contract_name}" "$@" 2>&1)
+    out=$(runlim --real-time-limit="${tout}" --kill-delay=2 --space-limit="${memout}" halmos --function "${fun_name}" --contract "${contract_name}" ${extra_params} "$@" 2>&1)
 else
     echo "Called incorrectly"
     exit 1

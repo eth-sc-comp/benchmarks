@@ -255,7 +255,7 @@ def execute_case(tool: str, extra_opts: list[str], case: Case) -> Result:
     fname_time = unique_file("output")
     toexec = ["time", "--verbose", "-o", "%s" % fname_time,
               tool, case.sol_file, case.contract, case.fun, case.sig,
-              "%i" % case.ds, "%s" % opts.timeout, "%s" % (opts.memoutMB)]
+              "%i" % case.ds, "%s" % opts.timeout, "%s" % (opts.memoutMB), "%d" % (opts.dump_smt)]
     toexec.extend(extra_opts)
     print("Running: %s" % (" ".join(toexec)))
     res = subprocess.run(toexec, capture_output=True, encoding="utf-8")
@@ -406,6 +406,9 @@ def set_up_parser() -> optparse.OptionParser:
 
     parser.add_option("--solcv", dest="solc_version", type=str, default="0.8.19",
                       help="solc version to use to compile contracts")
+
+    parser.add_option("--dumpsmt", dest="dump_smt", default=False,
+                      action="store_true", help="Ask the solver to dump SMT files, if the solver supports it")
 
     parser.add_option("-t", dest="timeout", type=int, default=25,
                       help="Max time to run. Default: %default")

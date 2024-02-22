@@ -9,6 +9,14 @@ sig="$1"; shift
 ds_test="$1"; shift
 tout="$1"; shift
 memout="$1"; shift
+dump_smt="$1"; shift
+
+extra_params=""
+if [[ "$dump_smt" == "1" ]]; then
+    extra_params="${extra_params} --smtdebug"
+    rm -f ./*.smt2
+fi
+
 
 HEVM_BIN=hevm
 
@@ -29,12 +37,14 @@ fi
 
 # Check if we emitted smt2 files. If so, copy them over to a
 # directory based on the contract file & name
-shopt -s nullglob
-set -- *.smt2
-if [ "$#" -gt 0 ]; then
-  dir="hevm-smt2/${contract_file}.${contract_name}/"
-  mkdir -p "$dir"
-  mv -f ./*.smt2 "$dir/"
+if [[ "$dump_smt" == "1" ]]; then
+    shopt -s nullglob
+    set -- *.smt2
+    if [ "$#" -gt 0 ]; then
+      dir="hevm-smt2/${contract_file}.${contract_name}/"
+      mkdir -p "$dir"
+      mv -f ./*.smt2 "$dir/"
+    fi
 fi
 
 set +x

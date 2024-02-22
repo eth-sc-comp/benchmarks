@@ -9,8 +9,12 @@ sig="$1"; shift
 ds_test="$1"; shift
 tout="$1"; shift
 memout="$1"; shift
+dump_smt="$1"; shift
 
-rm -f ./*.smt2
+extra_params=""
+if [[ "$dump_smt" == "1" ]]; then
+    extra_params="${extra_params} --dump-smt-queries"
+fi
 
 if [[ "${ds_test}" == "0" ]]; then
     out=$(runlim --real-time-limit="${tout}" --kill-delay=2 --space-limit="${memout}" halmos --function "${fun_name}" --contract "${contract_name}" --symbolic-storage --symbolic-msg-sender"$@" 2>&1)
@@ -23,15 +27,14 @@ fi
 
 # Check if we emitted smt2 files. If so, copy them over to a
 # directory based on the contract file & name
-shopt -s nullglob
-set -- *.smt2
-if [ "$#" -gt 0 ]; then
-  dir="halmos-smt2/${contract_file}.${contract_name}/"
-  mkdir -p "$dir"
-  mv -f ./*.smt2 "$dir/"
-fi
-
 set +x
+if [[ "$dump_smt" == "1" ]] && [[ "$out" =~ "Generating SMT" ]]; then
+    regexp="s/^Generating SMT queries in \\(.*\\)/\\1/"
+    smtdir=$(echo "$out" | grep "Generating SMT" | sed -e "${regexp}")
+    outdir="halmos-smt2/${contract_file}.${contract_name}/"
+    mkdir -p "$dir"
+    mv -f ${smtdir}/*.smt2 "${outdir}/"
+fi
 
 if [[ $out =~ "Counterexample: unknown" ]]; then
   echo "result: unknown"

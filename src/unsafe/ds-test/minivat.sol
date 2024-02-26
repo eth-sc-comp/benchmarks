@@ -1,19 +1,14 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
-
 pragma solidity ^0.8.17;
 
 import "ds-test/test.sol";
 
-contract MiniVat is DSTest {
+contract MiniVat {
     uint256 public debt;
     mapping(address => uint256) public art;
     mapping(address => uint256) public dai;
     uint256 public Art;
     uint256 public rate;
-
-    function setUp() public {
-        init();
-    }
 
     function init() public {
         require(rate == 0, "rate not zero");
@@ -22,16 +17,6 @@ contract MiniVat is DSTest {
 
     function getValues() external view returns (uint256, uint256, uint256) {
         return (Art, rate, debt);
-    }
-
-    function move(address dst, int256 wad) public {
-        address src = msg.sender;
-        dai[src] = wad > 0
-            ? dai[src] - uint256(wad)
-            : dai[src] + uint256(-1 * wad);
-        dai[dst] = wad > 0
-            ? dai[dst] + uint256(wad)
-            : dai[dst] - uint256(-1 * wad);
     }
 
     function frob(int256 dart) public {
@@ -62,12 +47,26 @@ contract MiniVat is DSTest {
             : dai[usr] - uint256(-1 * ddai);
         debt = ddai > 0 ? debt + uint256(ddai) : debt - uint256(-1 * ddai);
     }
+}
 
-    function counterexample() external {
-        init();
-        frob(10 ** 18);
-        fold(-10 ** 27);
-        init();
+contract MiniVatTest is DSTest {
+    MiniVat public vat;
+
+    constructor() {
+        vat = new MiniVat();
+        vat.init();
+    }
+
+    function prove_invariant_symb(int256 frob, int256 fold) public {
+        vat.frob(frob);
+        vat.fold(fold);
+        vat.init();
+
+        (uint Art, uint rate, uint debt) = vat.getValues();
         assert(debt == Art * rate);
+    }
+
+    function prove_invariant_fixed() public {
+        prove_invariant_symb(10 ** 18, -10 ** 27);
     }
 }

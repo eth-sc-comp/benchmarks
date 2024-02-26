@@ -5,6 +5,8 @@ import sqlite3
 import optparse
 import re
 
+global opts
+opts : optparse.Values
 
 def unlink(fname):
     if not opts.no_del:
@@ -62,8 +64,8 @@ def gen_cdf_files() -> list[tuple[str, str, int]]:
             f.write(".headers off\n")
             f.write(".mode csv\n")
             f.write(".output "+fname_csv+"\n")
-            f.write("select t from results where solver='"+solver+"'\n and result!='unknown'")
-        os.system("sqlite3 results.db < %s" % fname_csv_gen)
+            f.write("select t from results where solver='{solver}'\n and result!='unknown'".format(solver=solver))
+        os.system("sqlite3 results.db < {fname_csv_gen}".format(fname_csv_gen=fname_csv_gen))
         unlink(fname_csv_gen)
 
         fname_cdf = fname_csv + ".gnuplotdata"
@@ -81,18 +83,20 @@ def gen_comparative_graphs() -> None:
             ret = cur.execute("""
             select tout
             from results
-            where solver='%s' or solver='%s'
-            group by tout""" % (solver, solver2))
+            where solver='{solver}' or solver='{solver2}'
+            group by tout""".format(solver=solver, solver2=solver2))
             tout = None
             for line in ret:
                 if tout is None:
                     tout = int(line[0])
                 else:
-                    print("Error, the two solvers, '%s' and '%s' are incomparable" % (solver, solver2));
+                    print("Error, the two solvers, '{solver}' and '{solver2}' are incomparable".format(
+                        solver=solver, solver2=solver2))
                     print(" --> they were run with different timeouts")
                     exit(-1)
             if tout is None:
-                print("Error, timeout couldn't be found for solvers '%s' and '%s'" %(solver, solver2))
+                print("Error, timeout couldn't be found for solvers '{solver}' and '{solver2}'".format(
+                    solver=solver, solver2=solver2))
                 print("  ---> were they not run?")
                 exit(-1)
         return tout
@@ -141,7 +145,8 @@ def gen_comparative_graphs() -> None:
                     a.name
                 from results as a, results as b
                 where
-                    a.solver='%s' and b.solver='%s' and a.name=b.name""" % (solver, solver2))
+                    a.solver='{solver}' and b.solver='{solver2}' and a.name=b.name""".format(
+                        solver=solver, solver2=solver2))
                 fname_gnuplot_data = "graphs/compare-"+solver+"-"+solver2+".gnuplotdata"
                 with open(fname_gnuplot_data, "w") as f:
                     for line in ret:
@@ -151,15 +156,16 @@ def gen_comparative_graphs() -> None:
                         f.write("%f %f %s\n" % (solver1_t, solver2_t, name))
 
             # generate plot
-            fname_gnuplot = "compare-%s-vs-%s.gnuplot" % (solver, solver2)
-            os.system("rm -f \"%s\"" % fname_gnuplot)
+            fname_gnuplot = "compare-{solver}-vs-{solver2}.gnuplot".format(
+                solver=solver, solver2=solver2)
+            os.system("rm -f \"{fname}\"".format(fname=fname_gnuplot))
             if opts.pretty_graphs:
                 todo =  ["eps"]
             else:
                 todo = ["eps", "png"]
             for t in todo:
                 name = genplot(t, solver, solver2)
-                print("Generating graph: graphs/%s" % name)
+                print("Generating graph: graphs/{name}".format(name=name))
             os.system("gnuplot "+fname_gnuplot)
             unlink(fname_gnuplot)
 
@@ -172,25 +178,25 @@ def gen_comparative_graphs() -> None:
 def gen_cdf_graph() -> None:
     cdf_files = gen_cdf_files()
     fname_gnuplot = "cdf.gnuplot"
-    os.system("rm -f \"%s\"" % fname_gnuplot)
+    os.system("rm -f \"{fname}\"".format(fname=fname_gnuplot))
     if opts.pretty_graphs:
         todo =  ["eps"]
     else:
         todo = ["eps", "png"]
 
-    for t in todo:
+    for ext in todo:
         with open(fname_gnuplot, "a") as f:
-            if t == "eps":
+            if ext == "eps":
                 if opts.pretty_graphs:
                     f.write("set term postscript eps color lw 1 \"Helvetica\" 13 size 4,2\n")
                 else:
                     f.write("set term postscript eps color lw 1 \"Helvetica\" 8 size 4,4\n")
-            elif t == "png":
+            elif ext == "png":
                 f.write("set term png size 800,600\n")
             else:
                 assert False
 
-            f.write("set output \"graphs/cdf.%s\"\n" % t)
+            f.write("set output \"graphs/cdf.{ext}\"\n".format(ext=ext))
             f.write("set title \"Solvers\"\n")
             f.write("set notitle\n")
             f.write("set key bottom right\n")

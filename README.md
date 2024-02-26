@@ -14,6 +14,9 @@ tools, including fuzzers, static analyzers, and symbolic execution engines.
 Install nix (see [here](https://nixos.org/download.html)). Then:
 
 ```
+# optional, but will make subsequent steps significantly faster
+nix-shell -p cachix --command "cachix use k-framework"
+
 nix develop   # this may take some time
 ./bench.py
 ./gen_graphs.py
@@ -143,3 +146,27 @@ bytecode directly from the respective build outputs.
 Check out the examples for `hevm` and `halmos` in the repository for examples.
 Note that in order for others to run your tool, it needs to be added to
 `flake.nix`.
+
+## Categories
+
+- conformance: should be easy, test correctness only
+- performance: should be hard
+
+[ ] loops
+[ ] calls
+[x] constructors
+[x] arithmetic
+[x] bitwise
+[ ] cheatcodes
+[x] memory
+[x] storage
+[x] keccak
+[x] calldata
+[ ] returndata
+[ ] address modeling
+
+- real world:
+  [x] erc20
+  [x] erc721
+  [x] deposit
+  [x] amm

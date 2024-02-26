@@ -1,8 +1,9 @@
-// SPDX-License-Identifier: AGPL-3.0-or-later
-
+// SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.17;
 
-contract Foo {
+import {DSTest} from "ds-test/test.sol";
+
+contract XorMagic {
     uint256 internal constant MAGIC = 0x69;
 
     uint256 internal flagA = 0;
@@ -32,5 +33,22 @@ contract Foo {
             }
         }
         assert(res);
+    }
+}
+
+contract XorMagicTest is DSTest {
+    XorMagic internal a;
+
+    function setUp() public {
+        a = new XorMagic();
+    }
+
+    /// @dev Attempts to find a combination of `x` and `y` that will cause
+    /// this test to revert. In order to do so, both `x` and `y` should
+    /// be equal to `0x69`.
+    function proveFuzz_cracked(uint256 x, uint256 y) public {
+        a.foo(x);
+        a.bar(y);
+        a.revertIfCracked();
     }
 }

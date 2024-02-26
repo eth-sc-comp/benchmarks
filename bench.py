@@ -33,10 +33,23 @@ def build_forge() -> None:
         ret = subprocess.run(cmd_line, capture_output=True)
         if ret.returncode != 0:
             print("Forge returned error(s)")
-            print(printable_output(ret.stderr))
-            exit(-1)
+            print(printable_output(ret.stderr.decode("utf-8")))
         ret.check_returncode()
 
+# TODO: this setup time should be reflected in the kontrol results somehow
+def build_kontrol() -> None:
+    if "kontrol" not in get_tools_used():
+        return None
+    if opts.norebuild:
+        return None
+
+    print("Building with kontrol...")
+    cmd_line = ["kontrol", "build"]
+    ret = subprocess.run(cmd_line, capture_output=True)
+    if ret.returncode != 0:
+        print("Kontrol returned error(s)")
+        print(printable_output(ret.stderr.decode("utf-8")))
+    ret.check_returncode()
 
 available_tools = {
     "hevm-cvc5": {
@@ -49,19 +62,19 @@ available_tools = {
         "version": "tools/hevm_version.sh",
         "extra_opts": ["--solver","z3"],
     },
-    "hevm-cvc5-abst-mem": {
+    "hevm-bitwuzla": {
         "call": "tools/hevm.sh",
         "version": "tools/hevm_version.sh",
-        "extra_opts": ["--solver", "cvc5", "--abstract-memory"],
-    },
-    "hevm-z3-abst-mem": {
-        "call": "tools/hevm.sh",
-        "version": "tools/hevm_version.sh",
-        "extra_opts": ["--solver","z3", "--abstract-memory"],
+        "extra_opts": ["--solver","bitwuzla"],
     },
     "halmos": {
         "call": "tools/halmos.sh",
         "version": "tools/halmos_version.sh",
+        "extra_opts": [],
+    },
+    "kontrol": {
+        "call": "tools/kontrol.sh",
+        "version": "tools/kontrol_version.sh",
         "extra_opts": [],
     }
 }
@@ -152,12 +165,13 @@ class Case:
 # multiple contracts
 def gather_cases() -> list[Case]:
     build_forge()
+    build_kontrol()
     # build a dictionary where the key is a directory in the foundry build
     # output, and the value is a list of contract names defined within
     output_jsons = {
         str(f): [j.stem for j in f.glob("*.json")]
         for f in Path("./out").iterdir()
-        if f.is_dir()
+        if f.is_dir() and f.name != "kompiled"
     }
 
     # replace the path to the output json with the path to the original solidity file
@@ -239,7 +253,7 @@ def execute_case(tool: str, extra_opts: list[str], case: Case) -> Result:
     fname_time = unique_file("output")
     toexec = ["time", "--verbose", "-o", "%s" % fname_time,
               tool, case.sol_file, case.contract, case.fun, case.sig,
-              "%i" % case.ds, "%s" % opts.timeout, "%s" % (opts.memoutMB)]
+              "%i" % case.ds, "%s" % opts.timeout, "%s" % (opts.memoutMB), "%d" % (opts.dump_smt)]
     toexec.extend(extra_opts)
     print("Running: %s" % (" ".join(toexec)))
     res = subprocess.run(toexec, capture_output=True, encoding="utf-8")
@@ -391,6 +405,9 @@ def set_up_parser() -> optparse.OptionParser:
     parser.add_option("--solcv", dest="solc_version", type=str, default="0.8.19",
                       help="solc version to use to compile contracts")
 
+    parser.add_option("--dumpsmt", dest="dump_smt", default=False,
+                      action="store_true", help="Ask the solver to dump SMT files, if the solver supports it")
+
     parser.add_option("-t", dest="timeout", type=int, default=25,
                       help="Max time to run. Default: %default")
 
@@ -443,6 +460,7 @@ def main() -> None:
         exit(-1)
 
     cases = gather_cases()
+    print(f"running {len(cases)} cases")
     cases.sort(key=lambda contr: contr.get_name())
     if len(cases) == 0:
         print(f"No cases gathered with test pattern '{opts.testpattern}'. Exiting.")

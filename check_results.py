@@ -11,7 +11,7 @@ def find_incorrect_test_cases_by_solver(file_path):
     for solver, results in data.items():
         incorrect_test_cases = []
         for result in results:
-            if 'correct' in result and result['correct'] is False:
+            if result.get('correct', None) is False:
                 incorrect_test_cases.append(result['name'])
 
         if incorrect_test_cases:

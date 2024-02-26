@@ -34,12 +34,11 @@ def build_forge() -> None:
         if ret.returncode != 0:
             print("Forge returned error(s)")
             print(printable_output(ret.stderr.decode("utf-8")))
-            exit(-1)
         ret.check_returncode()
 
 # TODO: this setup time should be reflected in the kontrol results somehow
 def build_kontrol() -> None:
-    if not ("kontrol" in get_tools_used()):
+    if "kontrol" not in get_tools_used():
         return None
     if opts.norebuild:
         return None
@@ -50,7 +49,6 @@ def build_kontrol() -> None:
     if ret.returncode != 0:
         print("Kontrol returned error(s)")
         print(printable_output(ret.stderr.decode("utf-8")))
-        exit(-1)
     ret.check_returncode()
 
 available_tools = {

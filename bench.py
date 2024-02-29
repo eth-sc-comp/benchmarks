@@ -325,25 +325,25 @@ def run_all_tests(tools, cases: list[Case]) -> dict[str, list[Result]]:
 
 # Encodes the 'Result' class into JSON
 class ResultEncoder(json.JSONEncoder):
-    def default(self, obj):
-        if isinstance(obj, Result):
-            solved = obj.result == "safe" or obj.result == "unsafe"
+    def default(self, o):
+        if isinstance(o, Result):
+            solved = o.result == "safe" or o.result == "unsafe"
             if solved:
-                correct = obj.result == obj.case.expected
+                correct = o.result == o.case.expected
             else:
                 correct = None
             return {
-                "name": obj.case.get_name(),
+                "name": o.case.get_name(),
                 "solc_version": opts.solc_version,
-                "ds": obj.case.ds,
+                "ds": o.case.ds,
                 "solved": solved,
                 "correct": correct,
-                "t": obj.t,
-                "tout": obj.tout,
-                "memMB": obj.mem_used_MB,
-                "exit_status": obj.exit_status,
-                "out": obj.out}
-        return json.JSONEncoder.default(self, obj)
+                "t": o.t,
+                "tout": o.tout,
+                "memMB": o.mem_used_MB,
+                "exit_status": o.exit_status,
+                "out": o.out}
+        return json.JSONEncoder.default(self, o)
 
 
 # Returns empty string if value is None. This is converted to NULL in SQLite

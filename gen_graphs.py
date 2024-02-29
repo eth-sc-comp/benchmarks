@@ -202,7 +202,7 @@ def gen_cdf_graph() -> None:
             f.write("set key bottom right\n")
             f.write("unset logscale x\n")
             f.write("unset logscale y\n")
-            f.write("set ylabel  \"Problems sovled\"\n")
+            f.write("set ylabel  \"Problems solved\"\n")
             f.write("set xlabel \"Wallclock Time (s)\"\n")
             f.write("plot \\\n")
             towrite = ""

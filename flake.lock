@@ -499,17 +499,17 @@
         "solidity": "solidity"
       },
       "locked": {
-        "lastModified": 1705518878,
-        "narHash": "sha256-OT/u7PcK0CAt4P+hMQzscJB5cJ9fsnIdjo274mJc8Ac=",
+        "lastModified": 1712572925,
+        "narHash": "sha256-LBPymwd56x6I2bFXt69izJTe2r9jo2XOeZrd0bZCQLI=",
         "owner": "ethereum",
         "repo": "hevm",
-        "rev": "b419c12829f65391ee1423cedb215480718bf28b",
+        "rev": "27b1f45f0f0989fe3802ced7bab2b0eb78251524",
         "type": "github"
       },
       "original": {
         "owner": "ethereum",
-        "ref": "bitwuzla-main",
         "repo": "hevm",
+        "rev": "27b1f45f0f0989fe3802ced7bab2b0eb78251524",
         "type": "github"
       }
     },

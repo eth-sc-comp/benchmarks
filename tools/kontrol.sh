@@ -9,6 +9,7 @@ sig="$1"; shift
 ds_test="$1"; shift
 tout="$1"; shift
 memout="$1"; shift
+dump_smt="$1"; shift
 
 rm -f ./*.smt2
 

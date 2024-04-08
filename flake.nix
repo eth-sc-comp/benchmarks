@@ -7,7 +7,7 @@
 
     # tools
     hevm.url = "github:ethereum/hevm/27b1f45f0f0989fe3802ced7bab2b0eb78251524";
-    kontrol.url = "github:runtimeverification/kontrol";
+    kontrol.url = "github:runtimeverification/kontrol/v0.1.241";
     foundry.url = "github:shazow/foundry.nix/monthly";
     halmos-src = { url = "github:a16z/halmos"; flake = false; };
     runlim-src = { url = "github:msooseth/runlim"; flake = false; };

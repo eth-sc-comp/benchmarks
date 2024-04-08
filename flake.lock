@@ -670,6 +670,7 @@
       },
       "original": {
         "owner": "runtimeverification",
+        "ref": "v0.1.241",
         "repo": "kontrol",
         "type": "github"
       }

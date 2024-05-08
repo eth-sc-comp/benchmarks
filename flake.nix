@@ -7,13 +7,13 @@
 
     # tools
     hevm.url = "github:ethereum/hevm/27b1f45f0f0989fe3802ced7bab2b0eb78251524";
-    #kontrol.url = "github:runtimeverification/kontrol/v0.1.225";
+    kontrol.url = "github:runtimeverification/kontrol/v0.1.113";
     foundry.url = "github:shazow/foundry.nix/monthly";
     halmos-src = { url = "github:a16z/halmos"; flake = false; };
     runlim-src = { url = "github:msooseth/runlim"; flake = false; };
   };
 
-  outputs = { self, nixpkgs, flake-utils, hevm, foundry, halmos-src, runlim-src }:
+  outputs = { self, nixpkgs, flake-utils, hevm, kontrol, foundry, halmos-src, runlim-src }:
     flake-utils.lib.eachDefaultSystem (system:
       let
         pkgs = nixpkgs.legacyPackages.${system};
@@ -47,7 +47,7 @@
             # tools
             halmos
             hevm.packages.${system}.default
-            #kontrol.packages.${system}.default
+            kontrol.packages.${system}.default
             foundry.defaultPackage.${system}
             pkgs.solc
 

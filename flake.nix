@@ -34,14 +34,14 @@
           doCheck = false;
           postPatch = ''
             # Use upstream z3 implementation
-            substituteInPlace pyproject.toml \
-              --replace "\"z3-solver\"," "" \
+            sed -i '/^.*"z3-solver==.*",$/d' "pyproject.toml"
           '';
           buildInputs = with pkgs.python3.pkgs; [ setuptools ];
-          propagatedBuildInputs = with pkgs.python3.pkgs; [ setuptools z3 ];
+          propagatedBuildInputs = with pkgs.python3.pkgs; [ setuptools setuptools_scm z3 sortedcontainers toml ];
         };
       in rec {
-        devShell = pkgs.mkShell {
+        packages.default = halmos;
+        devShells.default = pkgs.mkShell {
           DAPP_SOLC="${pkgs.solc}/bin/solc";
           packages = [
             # tools

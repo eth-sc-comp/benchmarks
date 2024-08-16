@@ -428,11 +428,11 @@
     "halmos-src": {
       "flake": false,
       "locked": {
-        "lastModified": 1701936677,
-        "narHash": "sha256-558SUXY6owSSv89eSSkHSHgDExSdlJCdpf1IrXmgo10=",
+        "lastModified": 1723675074,
+        "narHash": "sha256-ZXiP/CbvGz37QiF0UwvYryAVxIvVYiLW7RnKxPrtVP0=",
         "owner": "a16z",
         "repo": "halmos",
-        "rev": "7bb84d289618165687f7cbb8e844a9590c5a566a",
+        "rev": "c3f45dd3ff65635840847713ece60b779f8600d5",
         "type": "github"
       },
       "original": {
@@ -835,11 +835,11 @@
     },
     "nixpkgs_7": {
       "locked": {
-        "lastModified": 1691147152,
-        "narHash": "sha256-WZ8wFSfQ2dg29FaHzYWYZpmvi9+a/lAZr5Gcj4rNXRA=",
+        "lastModified": 1723758588,
+        "narHash": "sha256-xR37evwobI8AYc5bd+woU0bmRyVmAy+tWE4sv7TAiTI=",
         "owner": "nixos",
         "repo": "nixpkgs",
-        "rev": "bf4d2e6c1ecdf5e46271bcb5f90541539e06446b",
+        "rev": "04e8554b1264d1eb3422104cf5bf28b04fc81d4d",
         "type": "github"
       },
       "original": {

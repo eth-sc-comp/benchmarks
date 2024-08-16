@@ -7,7 +7,7 @@ contract_name="$1" ; shift
 fun_name="$1"; shift
 ds_test="$1"; shift
 
-out=$(halmos --ignore-compile --foundry-ignore-compile --function "${fun_name}" --contract "${contract_name}" "$@" 2>&1)
+out=$(halmos --statistics --early-exit --function "${fun_name}" --contract "${contract_name}" "$@" 2>&1)
 
 set +x
 

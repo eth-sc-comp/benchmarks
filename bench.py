@@ -26,7 +26,7 @@ def build_forge() -> None:
     if not opts.norebuild:
         print("Building with forge...")
         recreate_out()
-        cmd_line = ["forge", "build",
+        cmd_line = ["forge", "build", "--ast",
                    "--extra-output", "storageLayout", "metadata"]
         if opts.yul: cmd_line.extend(["--extra-output", "ir"])
         cmd_line.extend(["--use", opts.solc_version])
@@ -182,6 +182,8 @@ def gather_cases() -> list[Case]:
             if json_path.startswith("out/build-info"):
                 continue
             with open(json_path) as oj:
+                if opts.verbose:
+                    print("Parsing: ", json_path)
                 js = json.load(oj)
                 sol_file: str = js["ast"]["absolutePath"]
                 if sol_file.startswith("src/common/") or sol_file.startswith("lib/"):
